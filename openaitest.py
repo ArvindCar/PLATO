@@ -26,7 +26,7 @@ def encode_image(image):
         image.save(buffer, format="PNG")
         return base64.b64encode(buffer.getvalue()).decode('utf-8')
   
-image_path = "/home/aesee/CMU/MAIL_Lab/LLM_Tool/Arm_no_tool_1.png"
+image_path = "Trials/Arm_no_tool_1.png"
 
 base64_image = encode_image(resize_and_return_image(image_path))
 
