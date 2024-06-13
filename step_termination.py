@@ -14,14 +14,22 @@ def encode_image(image):
         image.save(buffer, format="PNG")
         return base64.b64encode(buffer.getvalue()).decode('utf-8')
   
-def TerminationCheck(image_path):
-    base64_image = encode_image(resize_and_return_image(image_path))
+def TerminationCheck(image_path_1, image_path_2 = None, image_path_3 = None):
+    base64_image_1 = encode_image(resize_and_return_image(image_path_1))
+    if image_path_2 != None:
+        base64_image_2 = encode_image(resize_and_return_image(image_path_2))
+    if image_path_3 != None:
+        base64_image_3 = encode_image(resize_and_return_image(image_path_3))
+
 
     client = OpenAI()
     prompt = [
         {
             "role": "system", 
-            "content": "You are tasked with checking if a parallel plate gripper has successfully grasped a tool. If the tool is currently held by the gripper, reply 'Yes'. If the tool is not held by the gripper, reply 'No'."
+            "content": """You are tasked with checking if a parallel plate gripper has successfully grasped a tool, based on an egocentric view, taken from a camera near the end effector. 
+                          This will give you the best idea of whether the gripper are grasping the object or not.
+                          If the tool is currently held by the gripper, reply 'Yes'. 
+                          If the tool is not held by the gripper, reply 'No'."""
         },
         {
             "role": "user",
@@ -29,19 +37,37 @@ def TerminationCheck(image_path):
             [
             {
                 "type": "text",
-                "text": "Is the robot grasping the tool? (Yes/No)"
+                "text": "Based on the following three images, is the robot grasping the tool? (Yes/No)"
             },
             {
                 "type": "image_url",
                 "image_url": 
                 {
-                "url": f"data:image/jpeg;base64,{base64_image}",
+                "url": f"data:image/jpeg;base64,{base64_image_1}",
                 "detail": "low"
                 }
             }
+            # {
+            #     "type": "image_url",
+            #     "image_url": 
+            #     {
+            #     "url": f"data:image/jpeg;base64,{base64_image_2}",
+            #     "detail": "low"
+            #     }
+            # },
+            # {
+            #     "type": "image_url",
+            #     "image_url": 
+            #     {
+            #     "url": f"data:image/jpeg;base64,{base64_image_3}",
+            #     "detail": "low"
+            #     }
+            # }
             ]
         }
     ]
+
+    
     completion = client.chat.completions.create(
         model='gpt-4o',
         messages=prompt
@@ -50,7 +76,10 @@ def TerminationCheck(image_path):
     return(completion.choices[0].message.content,"\n")
 
 if __name__=="__main__":
-    image_path = "/home/aesee/CMU/MAIL_Lab/LLM_Tool/Arm_no_tool_1.png"
-    response = TerminationCheck(image_path)
-    print(response, "\n")
+    image_path_1 = "Trials/Termination_1_view_4.jpg"
+    image_path_2 = "Trials/Termination_1_view_1.jpg"
+    image_path_3 = "Trials/Termination_1_view_2.jpg"
+    # response = TerminationCheck(image_path_1, image_path_2, image_path_3)
+    response = TerminationCheck(image_path_1)
+    print(response)
 
