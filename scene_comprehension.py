@@ -14,7 +14,7 @@ def encode_image(image):
         image.save(buffer, format="PNG")
         return base64.b64encode(buffer.getvalue()).decode('utf-8')
   
-def TerminationCheck(image_path):
+def SceneComprehension(image_path):
     base64_image = encode_image(resize_and_return_image(image_path))
 
     client = OpenAI()
@@ -55,6 +55,6 @@ def TerminationCheck(image_path):
 
 if __name__=="__main__":
     image_path = "Trials/Real_table_w_tools.jpg"
-    response = TerminationCheck(image_path)
+    response = SceneComprehension(image_path)
     print(response, "\n")
 

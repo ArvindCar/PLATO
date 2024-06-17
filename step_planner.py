@@ -14,7 +14,7 @@ def encode_image(image):
         image.save(buffer, format="PNG")
         return base64.b64encode(buffer.getvalue()).decode('utf-8')
   
-def TerminationCheck(image_path_1, image_path_2 = None, image_path_3 = None):
+def Plan2Action(image_path_1, image_path_2 = None, image_path_3 = None):
     base64_image_1 = encode_image(resize_and_return_image(image_path_1))
     if image_path_2 != None:
         base64_image_2 = encode_image(resize_and_return_image(image_path_2))
@@ -80,6 +80,6 @@ if __name__=="__main__":
     image_path_2 = "Trials/Termination_1_view_1.jpg"
     image_path_3 = "Trials/Termination_1_view_2.jpg"
     # response = TerminationCheck(image_path_1, image_path_2, image_path_3)
-    response = TerminationCheck(image_path_1)
+    response = Plan2Action(image_path_1)
     print(response)
 
