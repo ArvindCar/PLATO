@@ -4,7 +4,7 @@ import base64
 from PIL import Image
 from io import BytesIO
 
-def Plan2Action(Action, Location):
+def Plan2Action(Action, Location, Tool = "None"):
 
 
     client = OpenAI()
@@ -27,6 +27,7 @@ def Plan2Action(Action, Location):
                           For Example:
                             1. Go-to: Location1 + (0, 0, 10 cm)
                             2. Grasp: 1
+                          Reason out each step, and explain the intended effect for each step.
                         """
         },
         {
@@ -37,7 +38,7 @@ def Plan2Action(Action, Location):
                 "type": "text",
                 "text": f"""Action: {Action},
                             Location: {Location},
-                            Tool: Spoon"""
+                            Tool: {Tool}"""
             }
             ]
         }
@@ -52,9 +53,9 @@ def Plan2Action(Action, Location):
     return(completion.choices[0].message.content)
 
 if __name__=="__main__":
-    Action = "Scoop chocolate chips"
-    Location = "pile of chocolate chips"
-    # response = TerminationCheck(image_path_1, image_path_2, image_path_3)
-    response = Plan2Action(Action, Location)
+    Action = "Flatten, dough"
+    Location = "center of ball of dough"
+    Tool = "Roller"
+    response = Plan2Action(Action, Location, Tool)
     print(response)
 
