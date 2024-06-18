@@ -72,7 +72,7 @@ def OverallPlanner(Task, ObjList, PosList, ActionList, StepsList=[], step=0):
                                 Actions: A set of actions (ie. robot motion primitives) that you can use to construct your plan. You must pick your actions from this list.
 
                             This plan will be executed by a parallel plate gripper, so keep that in mind while constructing the plan.
-                            Each step in your plan should roughly follow the format '<action>, <object> (optional), <location on object> (optional).
+                            Each step in your plan should roughly follow the format '<action>, <object> (optional), <location on object> (optional)'.
                             
                             For example: 'Pick up, hammer, handle'
                             As per the above example, each step should consist of just comma seperated words, no other special characters
@@ -126,7 +126,7 @@ def OverallPlanner(Task, ObjList, PosList, ActionList, StepsList=[], step=0):
                                   Failed Action: The actions that failed to execute successfully.
 
                               This plan will be executed by a parallel plate gripper, so keep that in mind while constructing the plan.
-                              Each step in your plan should roughly follow the format '<action>, <object> (optional), <location on object> (optional).
+                              Each step in your plan should roughly follow the format '<action>, <object> (optional), <location on object> (optional)'.
                               
                               For example: 'Pick up, hammer, handle'
                               As per the above example, each step should consist of just comma seperated words, no other special characters

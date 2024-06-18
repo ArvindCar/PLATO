@@ -4,32 +4,30 @@ import base64
 from PIL import Image
 from io import BytesIO
 
-def resize_and_return_image(input_path, max_size=512):
-    with Image.open(input_path) as img:
-        img.thumbnail((max_size, max_size))
-        return img
-
-def encode_image(image):
-    with BytesIO() as buffer:
-        image.save(buffer, format="PNG")
-        return base64.b64encode(buffer.getvalue()).decode('utf-8')
-  
-def Plan2Action(image_path_1, image_path_2 = None, image_path_3 = None):
-    base64_image_1 = encode_image(resize_and_return_image(image_path_1))
-    if image_path_2 != None:
-        base64_image_2 = encode_image(resize_and_return_image(image_path_2))
-    if image_path_3 != None:
-        base64_image_3 = encode_image(resize_and_return_image(image_path_3))
+def Plan2Action(Action, Location):
 
 
     client = OpenAI()
     prompt = [
         {
             "role": "system", 
-            "content": """You are tasked with checking if a parallel plate gripper has successfully grasped a tool, based on an egocentric view, taken from a camera near the end effector. 
-                          This will give you the best idea of whether the gripper is grasping the object or not.
-                          If the tool is currently held by the gripper, reply 'Yes'. 
-                          If the tool is not held by the gripper, reply 'No'."""
+            "content": """You are tasked with converting high level commands, to low level commands that can be executed by a parallel plate gripper. 
+                          You will be given:
+                            Action: A command in the form '<action>, <object> (optional), <location of object> (optional)'.
+                            Location: A semantic description of the location that the grippers can move to.
+                            Tool: The tools that the gripper currently holds. If none, it means that the gripper isn't holding anything
+                          The High level commands will be actions that can be understood by a human.
+                          The Low level commands must consist of a combination of go-to poses and gripper states (Grasp/Open). Grasp is represented by 1, Open is represented by 0.
+                          If you need to perform a trajectory instead of discrete actions, do so by specifying a sequence of go-to poses.
+                          Go-to poses can be specified relative to the <location of object>. You can also use deltas (X or Y or Z) relative to the <location of object>, although this won't always be necessary.
+                          Robot Coordinate System:
+                            By default, the parallel plate gripper is facing the positive x direction, with its base mount behind it, in the negative x direction.
+                            The line joining the parallel plate grippers is along the Y axis, and Up represents the Z Axis.
+                          Your response should be a series of steps in the format: Go-to: <Location> + (deltaX, deltaY, deltaZ), OR Grasp: <0/1>.
+                          For Example:
+                            1. Go-to: Location1 + (0, 0, 10 cm)
+                            2. Grasp: 1
+                        """
         },
         {
             "role": "user",
@@ -37,32 +35,10 @@ def Plan2Action(image_path_1, image_path_2 = None, image_path_3 = None):
             [
             {
                 "type": "text",
-                "text": "Based on the following three images, is the robot grasping the tool? (Yes/No)"
-            },
-            {
-                "type": "image_url",
-                "image_url": 
-                {
-                "url": f"data:image/jpeg;base64,{base64_image_1}",
-                "detail": "low"
-                }
+                "text": f"""Action: {Action},
+                            Location: {Location},
+                            Tool: Spoon"""
             }
-            # {
-            #     "type": "image_url",
-            #     "image_url": 
-            #     {
-            #     "url": f"data:image/jpeg;base64,{base64_image_2}",
-            #     "detail": "low"
-            #     }
-            # },
-            # {
-            #     "type": "image_url",
-            #     "image_url": 
-            #     {
-            #     "url": f"data:image/jpeg;base64,{base64_image_3}",
-            #     "detail": "low"
-            #     }
-            # }
             ]
         }
     ]
@@ -73,13 +49,12 @@ def Plan2Action(image_path_1, image_path_2 = None, image_path_3 = None):
         messages=prompt
     )
 
-    return(completion.choices[0].message.content,"\n")
+    return(completion.choices[0].message.content)
 
 if __name__=="__main__":
-    image_path_1 = "Trials/Termination_1_view_4.jpg"
-    image_path_2 = "Trials/Termination_1_view_1.jpg"
-    image_path_3 = "Trials/Termination_1_view_2.jpg"
+    Action = "Scoop chocolate chips"
+    Location = "pile of chocolate chips"
     # response = TerminationCheck(image_path_1, image_path_2, image_path_3)
-    response = Plan2Action(image_path_1)
+    response = Plan2Action(Action, Location)
     print(response)
 
