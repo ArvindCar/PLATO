@@ -13,6 +13,10 @@ def encode_image(image):
     with BytesIO() as buffer:
         image.save(buffer, format="PNG")
         return base64.b64encode(buffer.getvalue()).decode('utf-8')
+    
+def Convert(string):
+    li = list(string.split(", "))
+    return li
   
 def SceneComprehension(image_path):
     base64_image = encode_image(resize_and_return_image(image_path))
@@ -48,13 +52,14 @@ def SceneComprehension(image_path):
     ]
     completion = client.chat.completions.create(
         model='gpt-4o',
-        messages=prompt
+        messages=prompt 
     )
-
-    return(completion.choices[0].message.content,"\n")
+    response = completion.choices[0].message.content
+    responselist = Convert(response)
+    return(responselist)
 
 if __name__=="__main__":
     image_path = "Trials/Real_table_w_tools.jpg"
     response = SceneComprehension(image_path)
-    print(response, "\n")
+    print(response)
 

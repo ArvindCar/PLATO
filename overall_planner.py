@@ -154,6 +154,10 @@ def OverallPlanner(Task, ObjList, PosList, ActionList, StepsList=[], step=0):
 
 if __name__=="__main__":
     # image_path = "Trials/Real_table_w_tools.jpg"
-    response = OverallPlanner()
+    Task = "Make a star shape chocolate chip cookie dough"
+    ObjList = ["Ball of cookie dough", "Circle shaped cookie cutter", "Star shaped cookie cutter", "Rolling pin", "Scissors", "Hammer", "Pile of chocolate chips", "Spoon", "Sewing needle"]
+    PosList = ["workspace center", "Original Position of Ball of cookie dough","Original Position of Circle shaped cookie cutter", "Original Position of Star shaped cookie cutter", "Original Position of Rolling pin", "Original Position of Scissors", "Original Position of Hammer", "Original Position of Pile of chocolate chips", "Original Position of Spoon", "Original Position of Sewing needle"]
+    ActionList = ["Push-down", "Move-to", "Grasp", "Release", "Roll", "Pour"]
+    response = OverallPlanner(Task, ObjList, PosList, ActionList, StepsList=[], step=0)
     print(response)
 
