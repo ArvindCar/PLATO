@@ -13,6 +13,11 @@ def encode_image(image):
     with BytesIO() as buffer:
         image.save(buffer, format="PNG")
         return base64.b64encode(buffer.getvalue()).decode('utf-8')
+    
+def ProcessString(input_string):
+    steps = [step.strip() for step in input_string.strip().split('\n')]
+    nested_list = [step.split('. ', 1)[1].split(', ') for step in steps]
+    return nested_list
   
 def OverallPlanner(Task, ObjList, PosList, ActionList, StepsList=[], step=0):
     # base64_image = encode_image(resize_and_return_image(image_path))
@@ -72,9 +77,15 @@ def OverallPlanner(Task, ObjList, PosList, ActionList, StepsList=[], step=0):
                                 Actions: A set of actions (ie. robot motion primitives) that you can use to construct your plan. You must pick your actions from this list.
 
                             This plan will be executed by a parallel plate gripper, so keep that in mind while constructing the plan.
-                            Each step in your plan should roughly follow the format '<action>, <object> (optional), <location on object> (optional)'.
+                            Each step in your plan should roughly follow the format '<action>, <location>, <object>, <tool>'.
+                                action - it is the action that you want the robot arm to perform (Example: roll, flatten, push, etc.)
+                                location - it is the location on the object that you wish to perform this action (Example: center of dough, handle of hammer, etc.)
+                                object - it is the object that you want the robot arm to interact with. It must not currently be held by the gripper (Example: hammer, spoon, etc.)
+                                tool - it is the tool currently held by the gripper (Example: hammer, spoon, etc.)
+                            For any given step, some of the above 4 parameters could be empty. (For example, when you move the gripper holding a spoon from one place to another, there is no object involved, only a tool). If any of these parameters are empty, report them as None for that step.
                             
-                            For example: 'Pick up, hammer, handle'
+                            Example: 'Pick up, hammer, handle, None'
+
                             As per the above example, each step should consist of just comma seperated words, no other special characters
                             Keep in mind that <location on object> must be a semantic description (not coordinates).
                             You cannot use any objects or actions not mentioned in the Objects and Actions list. 
@@ -126,9 +137,14 @@ def OverallPlanner(Task, ObjList, PosList, ActionList, StepsList=[], step=0):
                                   Failed Action: The actions that failed to execute successfully.
 
                               This plan will be executed by a parallel plate gripper, so keep that in mind while constructing the plan.
-                              Each step in your plan should roughly follow the format '<action>, <object> (optional), <location on object> (optional)'.
+                              Each step in your plan should roughly follow the format '<action>, <location>, <object>, <tool>'.
+                                  action - it is the action that you want the robot arm to perform (Example: roll, flatten, push, etc.)
+                                  location - it is the location on the object that you wish to perform this action (Example: center of dough, handle of hammer, etc.)
+                                  object - it is the object that you want the robot arm to interact with. It must not currently be held by the gripper (Example: hammer, spoon, etc.)
+                                  tool - it is the tool currently held by the gripper (Example: hammer, spoon, etc.)
+                              For any given step, some of the above 4 parameters could be empty. (For example, when you move the gripper holding a spoon from one place to another, there is no object involved, only a tool). If any of these parameters are empty, report them as None for that step.
                               
-                              For example: 'Pick up, hammer, handle'
+                              Example: 'Pick up, hammer, handle, None'
                               As per the above example, each step should consist of just comma seperated words, no other special characters
                               Keep in mind that <location on object> must be a semantic description (not coordinates).
                               You cannot use any objects or actions not mentioned in the Objects and Actions list. 
@@ -149,8 +165,9 @@ def OverallPlanner(Task, ObjList, PosList, ActionList, StepsList=[], step=0):
         model='gpt-4o',
         messages=prompt
     )
-
-    return(completion.choices[0].message.content)
+    response = completion.choices[0].message.content
+    print(response)
+    return(ProcessString(response))
 
 if __name__=="__main__":
     # image_path = "Trials/Real_table_w_tools.jpg"

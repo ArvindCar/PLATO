@@ -14,7 +14,7 @@ def encode_image(image):
         image.save(buffer, format="PNG")
         return base64.b64encode(buffer.getvalue()).decode('utf-8')
     
-def Convert(string):
+def ProcessString(string):
     li = list(string.split(", "))
     return li
   
@@ -55,7 +55,7 @@ def SceneComprehension(image_path):
         messages=prompt 
     )
     response = completion.choices[0].message.content
-    responselist = Convert(response)
+    responselist = ProcessString(response)
     return(responselist)
 
 if __name__=="__main__":
