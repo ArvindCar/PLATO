@@ -60,11 +60,11 @@ if __name__ == "__main__":
     ObjLocList = [np.array([0.5, 0.1, 0.1]), np.array([0.7, 0.3, 0.1]), np.array([0.2, 0.4, 0.1])]
     LocDict = dict(zip(PosList, ObjLocList))
 
-    #TODO: Pass query and list of objects to planner 
+    #Pass query and list of objects to planner 
     StepsList = OverallPlanner(Task, ObjList, PosList, ActionList)
     num_steps = len(StepsList)
 
-    #TODO: Iterate through list of steps and query step planner to get got-to poses
+    #Iterate through list of steps and query step planner to get got-to poses
     i=1
     while i<=num_steps:
         print(f"Executing Step {i}: {StepsList[i-1]}")
@@ -75,7 +75,7 @@ if __name__ == "__main__":
 
         glob_pos = LocDict[Location]
 
-        #TODO: Query the steps to actions LLM
+        #Query the steps to actions LLM
         
         CommandList = Plan2Action(Action, Location, Object, Tool)
         
