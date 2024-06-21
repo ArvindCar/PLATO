@@ -5,7 +5,8 @@ from PIL import Image
 from io import BytesIO
 
 def ProcessString(input_string):
-    steps_list_part = input_string.split("Steps List:")[1].strip()
+    input_string = input_string.lower()
+    steps_list_part = input_string.split("steps list:")[1].strip()
     steps = [step.split('. ', 1)[1] for step in steps_list_part.split('\n')]
     steps_nested = []
     for step in steps:
@@ -17,7 +18,7 @@ def ProcessString(input_string):
 
 
 def Plan2Action(Action, Location, Object = 'None', Tool = 'None'):
-    print("Starting Step Planner:")
+    print("Starting Step Planner:") 
 
     client = OpenAI()
     prompt = [
@@ -44,10 +45,10 @@ def Plan2Action(Action, Location, Object = 'None', Tool = 'None'):
                           For Example:
                             1. Go-to: Location1 + (0, 0, 0 cm)
                             2. Grasp: 1
-                          Reason out each step, and explain the intended effect for each step. Assume that all upstream tasks for the given step have been completed succesffully.
+                          Reason out each step, and explain the intended effect for each step. Keep in mind that if you want to grasp something, you might want to end the action by liftng the object you grasped. Assume that all upstream tasks for the given step have been completed succesffully.
                           At the end list out just the steps involved (no other information).
 
-                          Take a look at the example below for reference:
+                          Take a look at the example below. Strictly follow the format of Expected Output.
                           <start of example>
                           [### User Input]:
                             Action: Pick-up,
@@ -56,15 +57,17 @@ def Plan2Action(Action, Location, Object = 'None', Tool = 'None'):
                             Tool: None
                           
                           [### Expected Output]:
-                            1. Grasp: 1
-                            Reasoning: Since our task is just to grasp, it is assumed that all upstream tasks, like moving to the location of the rolling pin has already been completed.
-                            Thus, the robot arm just needs to grasp the rolling pin
-                            2. Go-to: Original Position of Rolling Pin + (0, 0, 10 cm)
+                            1. Go-to: Original Position of Rolling Pin
+                            Reasoning: In order to pick the object up, you must be at the location of the object.
+                            2. Grasp: 1
+                            Reasoning: Since we have moved to the location of the rolling pin already, the robot arm just needs to grasp the rolling pin.
+                            3. Go-to: Original Position of Rolling Pin + (0, 0, 10 cm)
                             Reasoning: Now that we have grasped the rolling pin, the next task is to pick it up. This is accomplished by a Go-to command asking the gripper to move vertically up.
                             
-                            Steps List:
-                              1. Grasp: 1
-                              2. Go-to: Original Position of Rolling Pin + (0, 0, 10 cm)
+                            Steps List: 
+                              1. Go-to: Original Position of Rolling Pin
+                              2. Grasp: 1
+                              3. Go-to: Original Position of Rolling Pin + (0, 0, 10 cm)
                           <end of example>
                         """
         },

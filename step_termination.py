@@ -9,18 +9,22 @@ def resize_and_return_image(input_path, max_size=512):
         img.thumbnail((max_size, max_size))
         return img
 
-def encode_image(image):
-    with BytesIO() as buffer:
-        image.save(buffer, format="PNG")
-        return base64.b64encode(buffer.getvalue()).decode('utf-8')
+# def encode_image(image):
+#     with BytesIO() as buffer:
+#         image.save(buffer, format="PNG")
+#         return base64.b64encode(buffer.getvalue()).decode('utf-8')
+    
+def encode_image(image_path):
+  with open(image_path, "rb") as image_file:
+    return base64.b64encode(image_file.read()).decode('utf-8')
   
 def TerminationCheck(images_path, task):
     print("Checking Step Termination:")
 
-    image_path_1 = images_path + "/Image1.png"
-    image_path_2 = images_path + "/Image2.png"
-    image_path_3 = images_path + "/Image3.png"
-    image_path_4 = images_path + "/Image4.png"
+    image_path_1 = images_path + "/Image2.png"
+    image_path_2 = images_path + "/Image3.png"
+    image_path_3 = images_path + "/Image4.png"
+    image_path_4 = images_path + "/Image5.png"
 
     base64_image_1 = encode_image(image_path_1)
     base64_image_2 = encode_image(image_path_2)

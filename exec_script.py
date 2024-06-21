@@ -6,18 +6,21 @@ from frankapy import FrankaArm
 import robomail.vision as vis
 from PIL import Image
 import numpy as np
+import os
 
 
 def run_command(act, feature, deltas, fa):
-    if act == 'Go-to':
+    if act == 'go-to':
         pose = fa.get_pose()
-        pose.translation = feature + deltas
+        print("Feature: ",feature)
+        print("Deltas: ", deltas)
+        pose.translation = feature + deltas/100
         fa.goto_pose(pose)
         
-    if act == 'Grasp':
-        if feature == 0:
+    else:
+        if feature == '0':
             fa.open_gripper()
-        elif feature == 1:
+        elif feature == '1':
             fa.goto_gripper(width=0.0, grasp=True)
         
     return
@@ -43,33 +46,35 @@ if __name__ == "__main__":
     cam4 = vis.CameraClass(cam_number=4)
     cam5 = vis.CameraClass(cam_number=5)
 
-    img1, _, _, _ = cam1._get_next_frame()
-    img2, _, pc2, _ = cam2._get_next_frame()
-    img3, _, pc3, _ = cam3._get_next_frame()
-    img4, _, pc4, _ = cam4._get_next_frame()
-    img5, _, pc5, _ = cam5._get_next_frame()
+    img1, _, _, _, _ = cam1.get_next_frame()
+    img2, _, pc2, _, _ = cam2.get_next_frame()
+    img3, _, pc3, _, _ = cam3.get_next_frame()
+    img4, _, pc4, _, _ = cam4.get_next_frame()
+    img5, _, pc5, _, _ = cam5.get_next_frame()
 
     ImgList = [img1, img2, img3, img4, img5]
     
     save_path = save_dir + '/step0'
+    os.makedirs(save_path, exist_ok=True)
     max_size = 512
 
 
     for i, img_arr in enumerate(ImgList):
         img = Image.fromarray(img_arr)
         img.thumbnail((max_size, max_size))
-        img.save(save_path + f"/Image{i+1}.png")
+        img.save(save_path + f"/Image{i+1}.jpg")
 
 
     # Query Scene comp, get list of objects
 
     ObjList = SceneComprehension(save_path)
-    PosList = [f"Original Position of {obj}" for obj in ObjList]
+    PosList = [f"original position of {obj}" for obj in ObjList]
+    PosList.extend([f"{obj}" for obj in ObjList])
     print(ObjList)
     
     #TODO: Query Point-LLM, to get positions
 
-    ObjLocList = [np.array([0.5, 0.1, 0.1]), np.array([0.7, 0.3, 0.1]), np.array([0.2, 0.4, 0.1])]
+    ObjLocList = [np.array([0.723, 0.0,  0.033]), np.array([0.536, 0.0, 0.043]), np.array([0.723, 0.0,  0.033]), np.array([0.536, 0.0, 0.043])]
     LocDict = dict(zip(PosList, ObjLocList))
 
     #Pass query and list of objects to planner 
@@ -94,10 +99,12 @@ if __name__ == "__main__":
 
         #TODO: Execute the actions   
         for command in CommandList:
+            print(command)
             act = command[0]
             feature = command[1]
             deltas = None
-            if act == 'Got-to':
+            if act == 'go-to':
+                print("Go-to Command Identified. Accessing LocDict")
                 tuple_string = command[2]
                 tuple_elements = tuple_string.strip('()').split(',')
                 tuple_numbers = [int(element.strip().split()[0]) for element in tuple_elements]
@@ -107,27 +114,27 @@ if __name__ == "__main__":
 
 
         # Termination check
-        img1, _, _, _ = cam1._get_next_frame()
-        img2, _, pc2, _ = cam2._get_next_frame()
-        img3, _, pc3, _ = cam3._get_next_frame()
-        img4, _, pc4, _ = cam4._get_next_frame()
-        img5, _, pc5, _ = cam5._get_next_frame()
+        img1, _, _, _, _ = cam1.get_next_frame()
+        img2, _, pc2, _, _ = cam2.get_next_frame()
+        img3, _, pc3, _, _ = cam3.get_next_frame()
+        img4, _, pc4, _, _ = cam4.get_next_frame()
+        img5, _, pc5, _, _ = cam5.get_next_frame()
 
         ImgList = [img1, img2, img3, img4, img5]
         save_path = save_dir + f'/step{i}'
+        os.makedirs(save_path, exist_ok=True)
 
         for j, img_arr in enumerate(ImgList):
-            if j!=4:
-                img = Image.fromarray(img_arr)
-                img.thumbnail((max_size, max_size))
-                img.save(save_path + f"/Image{j+1}.png")
+            img = Image.fromarray(img_arr)
+            img.thumbnail((max_size, max_size))
+            img.save(save_path + f"/Image{j+1}.png")
 
         #TODO: Query pointllm to get new positions and make a new LocDict
         # NewPos = []
         # NewPosList = [f"New Position of {obj}" for obj in NewPosList]
 
 
-        if TerminationCheck(img1):
+        if TerminationCheck(save_path, Action):
             i+=1
 
         else:
