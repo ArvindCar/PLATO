@@ -15,6 +15,7 @@ from openai import OpenAI
 import base64
 from PIL import Image
 from io import BytesIO
+from segment_anything import SamPredictor, sam_model_registry
 
 def resize_and_return_image(input_path, max_size=512):
     with Image.open(input_path) as img:
@@ -27,8 +28,12 @@ def encode_image(image):
         return base64.b64encode(buffer.getvalue()).decode('utf-8')
   
 image_path = "Trials/Grid_2.png"
-
 base64_image = encode_image(resize_and_return_image(image_path))
+
+
+def main():
+    
+    return None
 
 from openai import OpenAI
 client = OpenAI()

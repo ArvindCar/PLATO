@@ -17,6 +17,7 @@ def ProcessString(input_string):
 
 
 def Plan2Action(Action, Location, Object = 'None', Tool = 'None'):
+    print("Starting Step Planner:")
 
     client = OpenAI()
     prompt = [

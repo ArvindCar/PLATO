@@ -19,6 +19,8 @@ def ProcessString(string):
     return li
   
 def SceneComprehension(image_path):
+    print("Starting scene Comprehension:")
+    
     base64_image = encode_image(resize_and_return_image(image_path))
 
     client = OpenAI()
@@ -56,6 +58,7 @@ def SceneComprehension(image_path):
     )
     response = completion.choices[0].message.content
     responselist = ProcessString(response)
+    print(response)
     return(responselist)
 
 if __name__=="__main__":

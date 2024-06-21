@@ -14,22 +14,28 @@ def encode_image(image):
         image.save(buffer, format="PNG")
         return base64.b64encode(buffer.getvalue()).decode('utf-8')
   
-def TerminationCheck(image_path_1, image_path_2 = None, image_path_3 = None):
-    base64_image_1 = encode_image(resize_and_return_image(image_path_1))
-    if image_path_2 != None:
-        base64_image_2 = encode_image(resize_and_return_image(image_path_2))
-    if image_path_3 != None:
-        base64_image_3 = encode_image(resize_and_return_image(image_path_3))
+def TerminationCheck(images_path, task):
+    print("Checking Step Termination:")
+
+    image_path_1 = images_path + "/Image1.png"
+    image_path_2 = images_path + "/Image2.png"
+    image_path_3 = images_path + "/Image3.png"
+    image_path_4 = images_path + "/Image4.png"
+
+    base64_image_1 = encode_image(image_path_1)
+    base64_image_2 = encode_image(image_path_2)
+    base64_image_3 = encode_image(image_path_3)
+    base64_image_4 = encode_image(image_path_4)
 
 
     client = OpenAI()
     prompt = [
         {
             "role": "system", 
-            "content": """You are tasked with checking if a parallel plate gripper has successfully grasped a tool, based on an egocentric view, taken from a camera near the end effector. 
-                          This will give you the best idea of whether the gripper is grasping the object or not.
-                          If the tool is currently held by the gripper, reply 'Yes'. 
-                          If the tool is not held by the gripper, reply 'No'."""
+            "content": """You are tasked with checking if a parallel plate gripper has successfully completed a task, based on an multi-angle views, taken from a cameras surrounding the scene. 
+                          You will be given the task that was attempted by the gripper, as well as multi-angle views to help you understand the current state of the system.
+                          If the task has been successfully completed, reply 1. 
+                          If the task has not been successfully completed, reply 0."""
         },
         {
             "role": "user",
@@ -37,7 +43,7 @@ def TerminationCheck(image_path_1, image_path_2 = None, image_path_3 = None):
             [
             {
                 "type": "text",
-                "text": "Based on the following three images, is the robot grasping the tool? (Yes/No)"
+                "text": f"The Task assigned to the robot arm was {task}. Based on the following four images, has the robot completed the task? (1/0)"
             },
             {
                 "type": "image_url",
@@ -46,23 +52,31 @@ def TerminationCheck(image_path_1, image_path_2 = None, image_path_3 = None):
                 "url": f"data:image/jpeg;base64,{base64_image_1}",
                 "detail": "low"
                 }
+            },
+            {
+                "type": "image_url",
+                "image_url": 
+                {
+                "url": f"data:image/jpeg;base64,{base64_image_2}",
+                "detail": "low"
+                }
+            },
+            {
+                "type": "image_url",
+                "image_url": 
+                {
+                "url": f"data:image/jpeg;base64,{base64_image_3}",
+                "detail": "low"
+                }
+            },
+            {
+                "type": "image_url",
+                "image_url": 
+                {
+                "url": f"data:image/jpeg;base64,{base64_image_4}",
+                "detail": "low"
+                }
             }
-            # {
-            #     "type": "image_url",
-            #     "image_url": 
-            #     {
-            #     "url": f"data:image/jpeg;base64,{base64_image_2}",
-            #     "detail": "low"
-            #     }
-            # },
-            # {
-            #     "type": "image_url",
-            #     "image_url": 
-            #     {
-            #     "url": f"data:image/jpeg;base64,{base64_image_3}",
-            #     "detail": "low"
-            #     }
-            # }
             ]
         }
     ]
@@ -72,8 +86,10 @@ def TerminationCheck(image_path_1, image_path_2 = None, image_path_3 = None):
         model='gpt-4o',
         messages=prompt
     )
+    response = completion.choices[0].message.content
+    print(response)
 
-    return(completion.choices[0].message.content,"\n")
+    return(response)
 
 if __name__=="__main__":
     image_path_1 = "Trials/Termination_1_view_4.jpg"
