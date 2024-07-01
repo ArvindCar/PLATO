@@ -17,38 +17,13 @@ def encode_image(image):
     
 def ProcessString(input_string):
     input_string = input_string.lower()
+    input_string = input_string.split(':')[1]
     steps = [step.strip() for step in input_string.strip().split('\n')]
     nested_list = [[re.sub(r'[^\w\s]', '', substep) for substep in step.split('. ', 1)[1].split(', ')] for step in steps]
     return nested_list
   
 def OverallPlanner(Task, ObjList, PosList, ActionList, StepsList=[], step=0):
-    # base64_image = encode_image(resize_and_return_image(image_path))
 
-    # cookie_prompt = {"type": "text",
-    #                  "text": """Task: Make a star shape chocolate chip cookie dough
-    #                          Objects: Ball of cookie dough,
-    #                                   Circle shaped cookie cutter,
-    #                                   Star shaped cookie cutter,
-    #                                   Rolling pin,
-    #                                   Scissors,
-    #                                   Hammer,
-    #                                   Pile of chocolate chips,
-    #                                   Spoon,
-    #                                   Sewing needle
- 
-    #                          Positions: Original Position of Ball of cookie dough,
-    #                                     Original Position of Circle shaped cookie cutter,
-    #                                     Original Position of Star shaped cookie cutter,
-    #                                     Original Position of Rolling pin,
-    #                                     Original Position of Scissors,
-    #                                     Original Position of Hammer,
-    #                                     Original Position of Pile of chocolate chips,
-    #                                     Original Position of Spoon,
-    #                                     Original Position of Sewing needle
-                                         
-    #                              Actions: Grasp, Push-down, Move-to, Grasp, Release, Roll, Pour  
-    #                          """
-    #                 }
     print("Starting Overall Planner:")
     client = OpenAI()
 
@@ -56,12 +31,9 @@ def OverallPlanner(Task, ObjList, PosList, ActionList, StepsList=[], step=0):
 
         info_prompt = {"type": "text",
                         "text": f"""Task: {Task},
-
                                     Objects: {ObjList},
-    
                                     Positions: {PosList},
-                                            
-                                    Actions: {ActionList},
+                                    Actions: {ActionList}
                                 """
                         }
         
@@ -95,8 +67,24 @@ def OverallPlanner(Task, ObjList, PosList, ActionList, StepsList=[], step=0):
                             You cannot use any objects or actions not mentioned in the Objects and Actions list. 
                             
                             General Guidelines:
-                            Everytime you use an object as  a tool, place it back in its original position before moving onto the next step of the process, if the next step doesn't involve the same tool"""
-            },
+                            Everytime you use an object as  a tool, place it back in its original position before moving onto the next step of the process, if the next step doesn't involve the same tool.
+                            
+                            Take a look at the example below. Strictly follow the format of Expected Output.
+                            <start of example>
+                            [### User Input]:
+                                Task: "Place the hammer on top of the bench",
+                                Objects: ['hammer', 'bench'],
+                                Positions: ["Original Position of Hammer", "Original Position of bench"],
+                                Actions: ["Pick-up", "Release", "Move-to"]
+                            
+                            [### Expected Output]:
+                                Overall Plan: 
+                                1. Pick-up, Original Position of Hammer, hammer, None
+                                2. Move-to, Original Position of bench, None, hammer 
+                                3. Release, Original Position of bench, None, hammer
+                                4. Move-to, Original Position of Hammer, None, None
+                            <end of example>"""
+                },
             {
                 "role": "user",
                 "content": 
@@ -110,17 +98,11 @@ def OverallPlanner(Task, ObjList, PosList, ActionList, StepsList=[], step=0):
         CompletedList = [StepsList[i] for i in range(step-1)]
         info_prompt = {"type": "text",
                         "text": f"""Task: {Task},
-
                                     Objects: {ObjList},
-    
                                     Positions: {PosList},
-                                            
                                     Actions: {ActionList},
-
                                     Previous Plan: {StepsList},
-
                                     Completed Actions: {CompletedList}
-
                                     Failed Action: {StepsList[step-1]}
                                 """
                         }
@@ -157,7 +139,26 @@ def OverallPlanner(Task, ObjList, PosList, ActionList, StepsList=[], step=0):
                               You cannot use any objects or actions not mentioned in the Objects and Actions list. 
                               
                               General Guidelines:
-                              Everytime you use an object as  a tool, place it back in its original position before moving onto the next step of the process, if the next step doesn't involve the same tool"""
+                              Everytime you use an object as  a tool, place it back in its original position before moving onto the next step of the process, if the next step doesn't involve the same tool
+                              
+                              Take a look at the example below. Strictly follow the format of Expected Output.
+                            <start of example>
+                            [### User Input]:
+                                Task: "Place the hammer on top of the bench",
+                                Objects: ['hammer', 'bench'],
+                                Positions: ["Original Position of Hammer", "Original Position of bench"],
+                                Actions: ["Pick-up", "Release", "Move-to"]
+                                Previous Plan: [<Previous Plan>],
+                                Completed Actions: []
+                                Failed Action: [Pick-up, Original Position of Bench, hammer, None]
+                            
+                            [### Expected Output]:
+                                Overall Plan: 
+                                1. Pick-up, Original Position of Hammer, hammer, None
+                                2. Move-to, Original Position of bench, None, hammer 
+                                3. Release, Original Position of bench, None, hammer
+                                4. Move-to, Original Position of Hammer, None, None
+                            <end of example>"""
             },
             {
                 "role": "user",

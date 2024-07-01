@@ -32,7 +32,6 @@ def ProcessString(input_string):
 def SceneComprehension(image_path):
     print("Starting scene Comprehension:")
     image_path_1 = image_path + "/Image2.png"
-    print(image_path_1)
     base64_image = encode_image(image_path_1)
 
     client = OpenAI()
@@ -42,8 +41,8 @@ def SceneComprehension(image_path):
             "content": """You will be given an image of a table with several objects on it. 
                           You are tasked with observing the image and listing out the various objects present on the table. 
                           Ignore any markings on the table itself.
-                          Your output should be a comma seperated list of objects.
-                          To the best of your ability, describe each object in a single word."""
+                          Your output should be a comma seperated list of objects, in alphabetical order.
+                          To the best of your ability, describe each object in a single word/phrase."""
         },
         {
             "role": "user",

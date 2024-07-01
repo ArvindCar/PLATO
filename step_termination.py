@@ -38,8 +38,12 @@ def TerminationCheck(images_path, task):
             "role": "system", 
             "content": """You are tasked with checking if a parallel plate gripper has successfully completed a task, based on an multi-angle views, taken from a cameras surrounding the scene. 
                           You will be given the task that was attempted by the gripper, as well as multi-angle views to help you understand the current state of the system.
+                          
                           If the task has been successfully completed, reply 1. 
-                          If the task has not been successfully completed, reply 0."""
+                          If the task has not been successfully completed, reply 0.
+                          Unless you are absolutely certain that the task has failed based on the provided images, you should assume that the task has been successfully completed.
+                          For example, if the task was to grasp an object, and the object is currently not on the table, it means that the gripper has grasped and lifted the object.
+                          Strictly maintian this format, do not list your explanation"""
         },
         {
             "role": "user",
@@ -93,7 +97,7 @@ def TerminationCheck(images_path, task):
     response = completion.choices[0].message.content
     print(response)
 
-    return(response)
+    return(int(response))
 
 if __name__=="__main__":
     image_path_1 = "Trials/Termination_1_view_4.jpg"
