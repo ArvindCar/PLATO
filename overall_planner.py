@@ -67,7 +67,8 @@ def OverallPlanner(Task, ObjList, PosList, ActionList, StepsList=[], step=0):
                             You cannot use any objects or actions not mentioned in the Objects and Actions list. 
                             
                             General Guidelines:
-                            Everytime you use an object as  a tool, place it back in its original position before moving onto the next step of the process, if the next step doesn't involve the same tool.
+                            Everytime you use an object as a tool, place it back in its original position before moving onto the next step of the process, if the next step doesn't involve the same tool.
+                            Avoid grasping deformable objects directly. Either use a tool, or make a plan that doesn't require them to be moved.
                             
                             Take a look at the example below. Strictly follow the format of Expected Output.
                             <start of example>
@@ -139,8 +140,9 @@ def OverallPlanner(Task, ObjList, PosList, ActionList, StepsList=[], step=0):
                               You cannot use any objects or actions not mentioned in the Objects and Actions list. 
                               
                               General Guidelines:
-                              Everytime you use an object as  a tool, place it back in its original position before moving onto the next step of the process, if the next step doesn't involve the same tool
-                              
+                              Everytime you use an object as a tool, place it back in its original position before moving onto the next step of the process, if the next step doesn't involve the same tool
+                              Try to avoid grasping deformable objects directly. Either use a tool , or make a plan that doesn't require them to be moved.
+
                               Take a look at the example below. Strictly follow the format of Expected Output.
                             <start of example>
                             [### User Input]:

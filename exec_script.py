@@ -8,7 +8,65 @@ from PIL import Image
 import numpy as np
 import os
 import pyrealsense2 as rs
+import ast
 
+home_rotation = np.array([0, 0, 0],
+                         [0, 0, 0],
+                         [0, 0, 0])
+
+def rotate_x(home_pose, angle):
+    """
+    Rotate the home pose around the x-axis by the given angle.
+    
+    Parameters:
+    home_pose (numpy.ndarray): The home pose 3x3 matrix.
+    angle (float): The rotation angle in radians.
+    
+    Returns:
+    numpy.ndarray: The rotated home pose 3x3 matrix.
+    """
+    rotation_matrix = np.array([
+        [1, 0, 0],
+        [0, np.cos(angle), -np.sin(angle)],
+        [0, np.sin(angle), np.cos(angle)]
+    ])
+    return np.dot(home_pose, rotation_matrix)
+
+def rotate_y(home_pose, angle):
+    """
+    Rotate the home pose around the y-axis by the given angle.
+    
+    Parameters:
+    home_pose (numpy.ndarray): The home pose 3x3 matrix.
+    angle (float): The rotation angle in radians.
+    
+    Returns:
+    numpy.ndarray: The rotated home pose 3x3 matrix.
+    """
+    rotation_matrix = np.array([
+        [np.cos(angle), 0, np.sin(angle)],
+        [0, 1, 0],
+        [-np.sin(angle), 0, np.cos(angle)]
+    ])
+    return np.dot(home_pose, rotation_matrix)
+
+def rotate_z(home_pose, angle):
+    """
+    Rotate the home pose around the z-axis by the given angle.
+    
+    Parameters:
+    home_pose (numpy.ndarray): The home pose 3x3 matrix.
+    angle (float): The rotation angle in radians.
+    
+    Returns:
+    numpy.ndarray: The rotated home pose 3x3 matrix.
+    """
+    rotation_matrix = np.array([
+        [np.cos(angle), -np.sin(angle), 0],
+        [np.sin(angle), np.cos(angle), 0],
+        [0, 0, 1]
+    ])
+    return np.dot(home_pose, rotation_matrix)
 
 def run_command(act, feature, deltas, fa):
     if act == 'go-to':
@@ -18,12 +76,25 @@ def run_command(act, feature, deltas, fa):
         pose.translation = feature + deltas/100
         fa.goto_pose(pose)
         
-    else:
+    elif act == "grasp":
         if feature == '0':
             fa.open_gripper()
         elif feature == '1':
             fa.goto_gripper(width=0.0, grasp=True)
-        
+
+    elif act == "tilt":
+        if features[0] != '0':
+            pose = fa.get_pose()
+            angle = ast.literal_eval(feature[0])
+            pose.rotation = rotate_x(home_rotation, np.radians(angle)) 
+        elif features[1] != '0':
+            pose = fa.get_pose()
+            angle = ast.literal_eval(feature[1])
+            pose.rotation = rotate_y(home_rotation, np.radians(angle))
+        elif features[2] != '0':
+            pose = fa.get_pose()
+            angle = ast.literal_eval(feature[2])
+            pose.rotation = rotate_z(home_rotation, np.radians(angle)) 
     return
 
 
@@ -80,7 +151,7 @@ if __name__ == "__main__":
 
     # Query Scene comp, get list of objects
 
-    ObjList = SceneComprehension(save_path)
+    ObjList = SceneComprehension(save_path, Task)
     PosList = [f"original position of {obj}" for obj in ObjList]
     PosList.extend([f"{obj}" for obj in ObjList])
     print(ObjList)
@@ -109,6 +180,7 @@ if __name__ == "__main__":
 
         #Query the steps to actions LLM
         
+        # TODO: Might be better to pass an image as well to the Plan2Action here (to get an idea of the current scene)
         CommandList = Plan2Action(Action, Location, Object, Tool, prev_steps)
         
 
@@ -125,6 +197,15 @@ if __name__ == "__main__":
                 tuple_numbers = [int(element.strip().split()[0]) for element in tuple_elements]
                 deltas = np.array(tuple_numbers)
                 feature = LocDict[feature]
+            elif act == "tilt":
+                print("Tilt Command Identified.")
+                tuple_string = command[1]
+                tuple_elements = tuple_string.strip('()').split(',')
+                tuple_numbers = [int(element.strip().split()[0]) for element in tuple_elements]
+                features = np.array(tuple_numbers)
+            else:
+                print("Grasp Command Identified.")
+            
             run_command(act, feature, deltas, fa)
 
 
