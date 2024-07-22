@@ -41,13 +41,13 @@ def Plan2Action(Action, Location, Object = 'None', Tool = 'None', prev_steps={})
                             By default, the parallel plate gripper (along wih whatever tool it may be holding) is facing the positive x direction, with its base mount behind it, in the negative x direction.
                             The line joining the parallel plate grippers is along the Y axis, and Up represents the Z Axis.
 
-                          Your response should be a series of steps in the format: Go-to: <Location> + (deltaX, deltaY, deltaZ), OR Grasp: <0/1>.
-                          Go-to commands move the end effector, and Grasp commands close/open the gripper. Grasp commands should only be used when you want to grassp or release a tool.
-                          For Example:
-                          Steps List:
-                            1. Go-to: Location1 + (0, 0, 0 cm)
-                            2. Grasp: 1
-                          Reason out each step, and explain the intended effect for each step. Keep in mind that if you want to grasp something, you might want to end the action by liftng the object you grasped. Assume that all upstream tasks for the given step have been completed succesffully.
+                          Your response should be a series of steps in the format: Go-to: <Location> + (deltaX, deltaY, deltaZ cm), OR Grasp: <0/1>, OR Tilt: (ThetaX, ThetaY, ThetaZ degrees).
+                          Go-to commands move the end effector, Grasp commands close/open the gripper, and Tilt commands roll/pitch/yaw the gripper. Grasp commands should only be used when you want to grasp or release a tool.
+                          Keep in mind that the Tilts are calculated absolutely, not relatively. Initially, they are (0, 0, 0 degrees). Also, the angles are calculated based on the right hand thumb rule (ie. Pitching down/up is a ThetaY angle).
+                          Any actions that you want to do should be described using these three commands, nothing else. If you want to perform more complex commands like applying forces, scooping, etc., reason them out so that they can broken down into these three fundamental building block commands.
+                          
+                          
+                          Reason out each step, and explain the intended effect for each step. Keep in mind that you might want to end an action by liftng the object you grasped. Assume that all upstream tasks for the given step have been completed successfully.
                           At the end list out just the steps involved (no other information).
 
                           Take a look at the example below. Strictly follow the format of Expected Output.
@@ -106,10 +106,10 @@ def Plan2Action(Action, Location, Object = 'None', Tool = 'None', prev_steps={})
     return(final_response)
 
 if __name__=="__main__":
-    Action = "Release"
-    Location = "Workspace-center"
-    Object = "None"
-    Tool = "Roller"
+    Action = "Flatten"
+    Location = "Pile of dough"
+    Object = "dough"
+    Tool = "Flattener"
 
     response = Plan2Action(Action, Location, Object, Tool)
     print(response)
