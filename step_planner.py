@@ -43,7 +43,9 @@ def Plan2Action(Action, Location, Object = 'None', Tool = 'None', prev_steps={})
 
                           Your response should be a series of steps in the format: Go-to: <Location> + (deltaX, deltaY, deltaZ cm), OR Grasp: <0/1>, OR Tilt: (ThetaX, ThetaY, ThetaZ degrees).
                           Go-to commands move the end effector, Grasp commands close/open the gripper, and Tilt commands roll/pitch/yaw the gripper. Grasp commands should only be used when you want to grasp or release a tool.
-                          Keep in mind that the Tilts are calculated absolutely, not relatively. Initially, they are (0, 0, 0 degrees). Also, the angles are calculated based on the right hand thumb rule (ie. Pitching down/up is a ThetaY angle).
+                          Keep in mind that the Tilts are calculated absolutely, not relatively. Initially, they are (0, 0, 0 degrees). Also, the angles are calculated based on the right hand thumb rule (ie. Pitching down is a positive ThetaY angle).
+                          A Tilt command should have only 1 non-zero value.
+                          Keep in mind that some actions will require the tool to be held at an angle, and not completely flat.
                           Any actions that you want to do should be described using these three commands, nothing else. If you want to perform more complex commands like applying forces, scooping, etc., reason them out so that they can broken down into these three fundamental building block commands.
                           
                           
@@ -62,7 +64,7 @@ def Plan2Action(Action, Location, Object = 'None', Tool = 'None', prev_steps={})
                           [Expected Output]:
                           Explanation:
                             1. Grasp: 0
-                            Reasoning: This ensures that the gripper is open, so that you can later grasp the object.
+                            Reasoning: This ensures that the gripper is open to grasp the tool (It is not currently holding any tool).
                             2. Go-to: Original Position of Rolling Pin + (0, 0, 0 cm)
                             Reasoning: In order to pick the object up, you must be at the location of the object. Since Previous Steps is empty, that means this has not been done yet.
                             3. Grasp: 1
@@ -107,8 +109,8 @@ def Plan2Action(Action, Location, Object = 'None', Tool = 'None', prev_steps={})
 
 if __name__=="__main__":
     Action = "Flatten"
-    Location = "Pile of dough"
-    Object = "dough"
+    Location = "Dough"
+    Object = "Dough"
     Tool = "Flattener"
 
     response = Plan2Action(Action, Location, Object, Tool)

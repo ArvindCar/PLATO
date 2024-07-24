@@ -38,10 +38,12 @@ def SceneComprehension(image_path):
     prompt = [
         {
             "role": "system", 
-            "content": """You will be given an image of a table with several objects on it. 
-                          You are tasked with observing the image and listing out the various objects present on the table. 
+            "content": """You will be given an image of a table with several objects on it. You will also be given a task which is to be performed by downstream LLMs, within this scene.
+                          Your task is to observe the image and list out the various objects present on the table. 
                           Ignore any markings on the table itself.
                           Your output should be a comma seperated list of objects, in alphabetical order.
+                          When listing these objects, keep in mind the context of the task itself.
+                          For example if you see a deformed ball like shape on the table, and the task is to "Make a cookie", then the ball object is most likely "ball of dough".
                           To the best of your ability, describe each object in a single word/phrase."""
         },
         {

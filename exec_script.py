@@ -28,12 +28,25 @@ def run_command(act, feature, deltas, fa):
         pose.translation = feature + deltas/100
         fa.goto_pose(pose)
         
-    else:
+    elif act == "grasp":
         if feature == '0':
             fa.open_gripper()
         elif feature == '1':
             fa.goto_gripper(width=0.0, grasp=True)
-        
+
+    elif act == "tilt":
+        if features[0] != '0':
+            pose = fa.get_pose()
+            angle = ast.literal_eval(feature[0])
+            pose.rotation = rotate_x(home_rotation, np.radians(angle)) 
+        elif features[1] != '0':
+            pose = fa.get_pose()
+            angle = ast.literal_eval(feature[1])
+            pose.rotation = rotate_y(home_rotation, np.radians(angle))
+        elif features[2] != '0':
+            pose = fa.get_pose()
+            angle = ast.literal_eval(feature[2])
+            pose.rotation = rotate_z(home_rotation, np.radians(angle)) 
     return
 
 
@@ -90,7 +103,7 @@ if __name__ == "__main__":
 
     # Query Scene comp, get list of objects
 
-    ObjList = SceneComprehension(save_path)
+    ObjList = SceneComprehension(save_path, Task)
     PosList = [f"original position of {obj}" for obj in ObjList]
     PosList.extend([f"{obj}" for obj in ObjList])
     print(ObjList)
