@@ -20,7 +20,7 @@ def ProcessString(input_string):
 def Plan2Action(Action, Location, Object = 'None', Tool = 'None', prev_steps={}):
     print("Starting Step Planner:") 
 
-    client = OpenAI()
+    client = OpenAI(api_key='sk-proj-cwCAqX0qJCX7QJz9CJ5OT3BlbkFJDQVToVBB2u2IIOq4ttTS')
     prompt = [
         {
             "role": "system", 
@@ -44,15 +44,15 @@ def Plan2Action(Action, Location, Object = 'None', Tool = 'None', prev_steps={})
                           Your response should be a series of steps in the format: Go-to: <Location> + (deltaX, deltaY, deltaZ cm), OR Grasp: <0/1>, OR Tilt: (ThetaX, ThetaY, ThetaZ degrees).
                           Go-to commands move the end effector, Grasp commands close/open the gripper, and Tilt commands roll/pitch/yaw the gripper. Grasp commands should only be used when you want to grasp or release a tool.
                           Keep in mind that the Tilts are calculated absolutely, not relatively. Initially, they are (0, 0, 0 degrees). Also, the angles are calculated based on the right hand thumb rule (ie. Pitching down is a positive ThetaY angle).
-                          A Tilt command should have only 1 non-zero value.
+                          A Tilt command should have only 1 non-zero value.45
                           Keep in mind that some actions will require the tool to be held at an angle, and not completely flat.
                           Any actions that you want to do should be described using these three commands, nothing else. If you want to perform more complex commands like applying forces, scooping, etc., reason them out so that they can broken down into these three fundamental building block commands.
-                          
+                          While doing actions, please first think what might happen if you do that action and output it only if you feel your goal will be reached or not.
                           
                           Reason out each step, and explain the intended effect for each step. Keep in mind that you might want to end an action by liftng the object you grasped. Assume that all upstream tasks for the given step have been completed successfully.
                           At the end list out just the steps involved (no other information).
 
-                          Take a look at the example below. Strictly follow the format of Expected Output.
+                          Take a look at the examples below. Strictly follow the format of Expected Output.
                           <start of example>
                           [User Input]:
                             Action: Pick-up,
@@ -66,7 +66,7 @@ def Plan2Action(Action, Location, Object = 'None', Tool = 'None', prev_steps={})
                             1. Grasp: 0
                             Reasoning: This ensures that the gripper is open to grasp the tool (It is not currently holding any tool).
                             2. Go-to: Original Position of Rolling Pin + (0, 0, 0 cm)
-                            Reasoning: In order to pick the object up, you must be at the location of the object. Since Previous Steps is empty, that means this has not been done yet.
+                            Reasoning: In order to pick the object up, you must be at the location of the object.
                             3. Grasp: 1
                             Reasoning: Since we have moved to the location of the rolling pin already, the robot arm just needs to grasp the rolling pin.
                             4. Go-to: Original Position of Rolling Pin + (0, 0, 20 cm)
@@ -78,7 +78,6 @@ def Plan2Action(Action, Location, Object = 'None', Tool = 'None', prev_steps={})
                               3. Grasp: 1
                               4. Go-to: Original Position of Rolling Pin + (0, 0, 20 cm)
                           <end of example>
-
                         """
         },
         {
@@ -108,11 +107,10 @@ def Plan2Action(Action, Location, Object = 'None', Tool = 'None', prev_steps={})
     return(final_response)
 
 if __name__=="__main__":
-    Action = "Flatten"
-    Location = "Dough"
+    Action = "Rolling"
+    Location = "Original Position of Dough"
     Object = "Dough"
-    Tool = "Flattener"
+    Tool = "Roller"
 
     response = Plan2Action(Action, Location, Object, Tool)
     print(response)
-
