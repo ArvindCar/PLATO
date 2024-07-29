@@ -29,7 +29,7 @@ def ProcessString(input_string):
     li = [re.sub(r'[^\w\s]', '', substring) for substring in split_strings]
     return li
   
-def SceneComprehension(image_path):
+def SceneComprehension(image_path, task):
     print("Starting scene Comprehension:")
     image_path_1 = image_path + "/Image2.png"
     base64_image = encode_image(image_path_1)
@@ -44,7 +44,9 @@ def SceneComprehension(image_path):
                           Your output should be a comma seperated list of objects, in alphabetical order.
                           When listing these objects, keep in mind the context of the task itself.
                           For example if you see a deformed ball like shape on the table, and the task is to "Make a cookie", then the ball object is most likely "ball of dough".
-                          To the best of your ability, describe each object in a single word/phrase."""
+                          To the best of your ability, describe each object in a single word/phrase.
+                          For example:
+                          ['ball of clay', 'box', 'screwdriver']"""
         },
         {
             "role": "user",
@@ -52,7 +54,7 @@ def SceneComprehension(image_path):
             [
             {
                 "type": "text",
-                "text": "What objects are present in the given image?"
+                "text": f"What objects are present in the given image? The task that this image is related to is {task}"
             },
             {
                 "type": "image_url",
@@ -71,7 +73,6 @@ def SceneComprehension(image_path):
     )
     response = completion.choices[0].message.content
     responselist = ProcessString(response)
-    print(response)
     return(responselist)
 
 if __name__=="__main__":

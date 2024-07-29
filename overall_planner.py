@@ -82,7 +82,7 @@ Take a look at the example below. Strictly follow the format of Expected Output.
     1. Pick-up, Original Position of Hammer, hammer, None
     2. Move-to, Original Position of bench, None, hammer 
     3. Release, Original Position of bench, None, hammer
-    4. Move-to, Original Position of Hammer, None, None
+    4. Move-to, Home Pose, None, None
 <end of example>"""
                 },
             {
