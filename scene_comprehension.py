@@ -43,10 +43,11 @@ def SceneComprehension(image_path, task):
                           Ignore any markings on the table itself.
                           Your output should be a comma seperated list of objects, in alphabetical order.
                           When listing these objects, keep in mind the context of the task itself.
+                          Try to describe the objects very briefly using the context provided. For example, if the task is related to metal objects, use the descriptor 'metal' before each object.
                           For example if you see a deformed ball like shape on the table, and the task is to "Make a cookie", then the ball object is most likely "ball of dough".
                           To the best of your ability, describe each object in a single word/phrase.
                           For example:
-                          ['ball of clay', 'box', 'screwdriver']"""
+                          ['plastic clay', 'plastic box', 'plastic screwdriver']"""
         },
         {
             "role": "user",
