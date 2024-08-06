@@ -164,7 +164,8 @@ if __name__ == "__main__":
 
     # Query Scene comp, get list of objects
 
-    ObjList = SceneComprehension(save_path, Task)
+    ObjList, HandleFlags = SceneComprehension(save_path, Task)
+    HandleDict = dict(zip(ObjList, HandleFlags))
     PosList = [f"original position of {obj}" for obj in ObjList]
     PosList.append("home pose")
     # PosList.extend([f"{obj}" for obj in ObjList])
@@ -196,9 +197,12 @@ if __name__ == "__main__":
         Object = StepsList[i-1][2]
         Tool = StepsList[i-1][3]
         print(Action)
-        CommandList = Plan2Action(Action, Location, [DescList[Object], DescList[Tool]], Object, Tool, prev_steps)
+        if HandleDict[Tool] == 1:
+            CommandList = Plan2Action(Action, Location, [DescList[Object], [max(DescList[Tool])]], Object, Tool, prev_steps)
+        else:
+            CommandList = Plan2Action(Action, Location, [DescList[Object], [0]], Object, Tool, prev_steps) # This means that the "Tool" has no handle
         #TODO: Write a condition to check if the next action is a grasp action
-        if Action == "pickup":
+        if Action == "pickup" and HandleDict[Object] == 1:
             # Query SAM to get centroid position of Object
             global_pos, _ = get_centroid(cam2, cam3, cam4, cam5, Object)
             pose = fa.get_pose()

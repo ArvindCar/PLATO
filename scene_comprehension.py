@@ -4,6 +4,7 @@ import base64
 from PIL import Image
 from io import BytesIO
 import re
+import ast
 # def resize_and_return_image(input_path, max_size=512):
 #     try:
 #         with Image.open(input_path) as img:
@@ -25,9 +26,20 @@ def encode_image(image_path):
 #         return base64.b64encode(buffer.getvalue()).decode('utf-8')
     
 def ProcessString(input_string):
-    split_strings = input_string.lower().split(", ")
-    li = [re.sub(r'[^\w\s]', '', substring) for substring in split_strings]
-    return li
+    # Parse the input string into Python objects
+    parsed_input = ast.literal_eval(input_string)
+    
+    # Ensure the input is a list of lists
+    if not all(isinstance(i, list) for i in parsed_input):
+        raise ValueError("Input must be a list of lists")
+    
+    # Process the first list (assumed to be a list of strings)
+    processed_list_1 = [re.sub(r'[^\w\s]', '', item.lower()) for item in parsed_input[0]]
+    
+    # Process the second list (assumed to be a list of integers)
+    processed_list_2 = parsed_input[1]
+    
+    return processed_list_1, processed_list_2
   
 def SceneComprehension(image_path, task):
     print("Starting scene Comprehension:")
@@ -39,15 +51,15 @@ def SceneComprehension(image_path, task):
         {
             "role": "system", 
             "content": """You will be given an image of a table with several objects on it. You will also be given a task which is to be performed by downstream LLMs, within this scene.
-                          Your task is to observe the image and list out the various objects present on the table. 
+                          Your task is to observe the image and list out the various objects present on the table. You are also required to provide a binary value, indicating if the object has a handle (1) or not (0).
                           Ignore any markings on the table itself.
-                          Your output should be a comma seperated list of objects, in alphabetical order.
+                          Your output should 2 lists: One should be a comma seperated list of objects, in alphabetical order, and the other should be a correspodning list of their binary handle flags.
                           When listing these objects, keep in mind the context of the task itself.
                           Try to describe the objects very briefly using the context provided. For example, if the task is related to metal objects, use the descriptor 'metal' before each object.
                           For example if you see a deformed ball like shape on the table, and the task is to "Make a cookie", then the ball object is most likely "ball of dough".
                           To the best of your ability, describe each object in a single word/phrase.
-                          For example:
-                          ['plastic clay', 'plastic box', 'plastic screwdriver']"""
+                          For example: (Stick to the below format exactly ie. just two lists)
+                          ['plastic clay', 'plastic box', 'plastic screwdriver'], [0, 0, 1]"""
         },
         {
             "role": "user",
@@ -77,7 +89,8 @@ def SceneComprehension(image_path, task):
     return(responselist)
 
 if __name__=="__main__":
-    image_path = "/home/arvind/LLM_Tool/LLM-Tool/Save_dir/step0"
-    response = SceneComprehension(image_path)
-    print(response)
+    image_path = "/home/aesee/CMU/MAIL_Lab/LLM_Tool/Save_dir/step3"
+    task = "Take the tape measure off the board"
+    response, flags = SceneComprehension(image_path, task)
+    print(response, flags)
 

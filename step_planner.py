@@ -28,7 +28,7 @@ def Plan2Action(Action, Location, Description = 'None', Object = 'None', Tool = 
                           
                           You will be given:
                             Action: A command in the form '<action>, <object> (optional), <location of object> (optional)'.
-                            Location: A semantic description of the location that the grippers can move to.
+                            Location: A semantic description of the location that the grippers can move to. This represents the centroid of the object
                             Description: Two arrays, describing the dimensions of the object and tool respecticely, in centimeters. If either tool or object is 'None', the respective array will be empty. Objects will be described by Length, Width and Height. Tools will be described by only Length. This length is the distance between the portion of the tool held by the gripper, and the end of the tool. You can use this information to output better Go-to positions
                             Object: The object that you want the robot arm to interact with. It is not currently be held by the gripper
                             Tool: The tools that the gripper currently holds. If None, it means that the gripper isn't holding anything
