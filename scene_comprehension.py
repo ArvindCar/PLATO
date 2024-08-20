@@ -51,14 +51,16 @@ def SceneComprehension(image_path, task):
         {
             "role": "system", 
             "content": """You will be given an image of a table with several objects on it. You will also be given a task which is to be performed by downstream LLMs, within this scene.
-                          Your task is to observe the image and list out the various objects present on the table. You are also required to provide a binary value, indicating if the object has a handle (1) or not (0).
+                          Your task is to observe the image and list out the various objects present on the table, ensuring the descriptions are brief and relevant to the context of the given task. It is even better if you incorporate the exact phrases from the task provided.
+                          For example, if the task involves adding mustard sauce, clearly identify the object as "plastic mustard bottle" rather than just "plastic sauce bottle."
+                          You are also required to provide a binary value, indicating if the object has a handle (1) or not (0).
                           Ignore any markings on the table itself.
                           Your output should 2 lists: One should be a comma seperated list of objects, in alphabetical order, and the other should be a correspodning list of their binary handle flags.
-                          When listing these objects, keep in mind the context of the task itself.
-                          Try to describe the objects very briefly using the context provided. For example, if the task is related to metal objects, use the descriptor 'metal' before each object.
+                          Try to describe the objects very briefly using the context provided. 
+                          For example, if the task is related to metal objects, use the descriptor 'metal' before each object.
                           For example if you see a deformed ball like shape on the table, and the task is to "Make a cookie", then the ball object is most likely "ball of dough".
                           To the best of your ability, describe each object in a single word/phrase.
-                          For example: (Stick to the below format exactly ie. just two lists)
+                          Example Output: (Stick to the below format exactly ie. just two lists)
                           ['plastic clay', 'plastic box', 'plastic screwdriver'], [0, 0, 1]"""
         },
         {

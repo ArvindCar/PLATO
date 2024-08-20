@@ -17,7 +17,7 @@ def encode_image(image):
     
 def ProcessString(input_string):
     input_string = input_string.lower()
-    input_string = input_string.split(':')[1]
+    input_string = input_string.split('overall plan:')[1]
     steps = [step.strip() for step in input_string.strip().split('\n')]
     nested_list = [[re.sub(r'[^\w\s]', '', substep) for substep in step.split('. ', 1)[1].split(', ')] for step in steps]
     return nested_list

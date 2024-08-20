@@ -20,7 +20,7 @@ def ProcessString(input_string):
 def Plan2Action(Action, Location, Description = 'None', Object = 'None', Tool = 'None', prev_steps={}):
     print("Starting Step Planner:") 
 
-    client = OpenAI(api_key='sk-proj-cwCAqX0qJCX7QJz9CJ5OT3BlbkFJDQVToVBB2u2IIOq4ttTS')
+    client = OpenAI()
     prompt = [
         {
             "role": "system", 
@@ -45,13 +45,18 @@ def Plan2Action(Action, Location, Description = 'None', Object = 'None', Tool = 
                           Your response should be a series of steps in the format: Go-to: <Location> + (deltaX, deltaY, deltaZ cm), OR Grasp: <0/1>, OR Tilt: (ThetaX, ThetaY, ThetaZ degrees).
                           Go-to commands move the end effector, Grasp commands close/open the gripper, and Tilt commands roll/pitch/yaw the gripper. Grasp commands should only be used when you want to grasp or release a tool.
                           Keep in mind that the Tilts are calculated absolutely, not relatively. Initially, they are (0, 0, 0 degrees). Also, the angles are calculated based on the right hand thumb rule (ie. Pitching down is a positive ThetaY angle).
-                          A Tilt command should have only 1 non-zero value.45
+                          A Tilt command should have only 1 non-zero value.
                           Keep in mind that some actions will require the tool to be held at an angle, and not completely flat.
                           Any actions that you want to do should be described using these three commands, nothing else. If you want to perform more complex commands like applying forces, scooping, etc., reason them out so that they can broken down into these three fundamental building block commands.
-                          While doing actions, please first think what might happen if you do that action and output it only if you feel your goal will be reached or not.
                           
-                          Reason out each step, and explain the intended effect for each step. Keep in mind that you might want to end an action by liftng the object you grasped. Assume that all upstream tasks for the given step have been completed successfully.
+                          Reason out each step, and explain the intended effect for each step. 
+                          Guidelines:
+                            Keep in mind that you might want to end a pick up action by liftng the object you grasped. 
+                            When releasing an object inside a container, do not go inside the container. Instead, drop it from a height, so that it is easier to open the gripper. 
+                            Assume that all upstream tasks for the given step have been completed successfully.
                           At the end list out just the steps involved (no other information).
+
+                          Keep in mind that if you want to place objects in any type of container, it is okay to drop them into the container (from 10 cm above the container)
 
                           Take a look at the examples below. Strictly follow the format of Expected Output.
                           <start of example>
@@ -76,7 +81,7 @@ def Plan2Action(Action, Location, Description = 'None', Object = 'None', Tool = 
                             4. Go-to: Original Position of Bagel + (10, 0, 10 cm)
                             Reasoning: Now that we have scooped up th bagel using the spatula, we can lift it up securely.
 
-                            Steps List: 
+                          Steps List: 
                               1. Go-to: Original Position of Bagel + (-50, 0, 20 cm)
                               2. Go-to: Original Position of Bagel + (-50, 0, 0 cm)
                               3. Go-to: Original Position of Bagel + (10, 0, 0 cm)
@@ -112,11 +117,11 @@ def Plan2Action(Action, Location, Description = 'None', Object = 'None', Tool = 
     return(final_response)
 
 if __name__=="__main__":
-    Action = "Scoop"
-    Location = "Original Position of Chocolate chips"
-    Description = '[[40, 40, 30],[40]]'
-    Object = "Chocolate chips"
-    Tool = "Spoon"
+    Action = "Place"
+    Location = "Original Position of bowl"
+    Description = '[[],[0]]'
+    Object = "none"
+    Tool = "onion"
 
     response = Plan2Action(Action, Location, Description, Object, Tool)
     print(response)
