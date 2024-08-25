@@ -52,7 +52,7 @@ def Plan2Action(Action, Location, Description = 'None', Object = 'None', Tool = 
                           Reason out each step, and explain the intended effect for each step. 
                           Guidelines:
                             Keep in mind that you might want to end a pick up action by liftng the object you grasped. 
-                            When releasing an object inside a container, do not go inside the container. Instead, drop it from a height, so that it is easier to open the gripper. 
+                            When releasing an object inside a container, do not go to "Original Position of the container + (0, 0, 0 cm)", as this will be inside the container. Instead, drop it from a height, ie. "Original Position of the container + (0, 0, 10 cm)"so that it is easier to open the gripper. 
                             Assume that all upstream tasks for the given step have been completed successfully.
                           At the end list out just the steps involved (no other information).
 
@@ -79,7 +79,7 @@ def Plan2Action(Action, Location, Description = 'None', Object = 'None', Tool = 
                             3. Go-to: Original Position of Bagel + (10, 0, 0 cm)
                             Reasoning: This slides the flat part of the spatula under the bagel, thereby picking it up
                             4. Go-to: Original Position of Bagel + (10, 0, 10 cm)
-                            Reasoning: Now that we have scooped up th bagel using the spatula, we can lift it up securely.
+                            Reasoning: Now that we have scooped up the bagel using the spatula, we can lift it up securely.
 
                           Steps List: 
                               1. Go-to: Original Position of Bagel + (-50, 0, 20 cm)
