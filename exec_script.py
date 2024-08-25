@@ -84,6 +84,17 @@ def rotate_z(matrix, angle):
 
 
 def run_command(act, feature, deltas, fa):
+    """
+    Executes the given low level command
+
+    Parameters:
+    act: The type of low level command (go-to/grasp/tilt)
+    feature: parameters of the low level command
+    deltas: parameters of the low level command
+    fa: FrankaArm instance
+
+    Returns:
+    """
     if act == 'go-to':
         pose = fa.get_pose()
         print("Feature: ",feature)
