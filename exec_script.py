@@ -236,16 +236,13 @@ def exec_experiment(fa, cam2, cam3, cam4, cam5, save_dir, Task, ActionList, home
             with open(save_path + '/CommandList', 'a') as file:
                 file.write("Affordance Model was queried" + "\n")
             # Query SAM to get centroid position of Object
-            global_pos, _ = get_centroid(cam2, cam3, cam4, cam5, Object)
+            global_pos, _ = get_centroid(cam2, cam3, cam4, cam5, Object, save_pc = False, save_path = save_dir, viz = False)
             print("centroid: ",global_pos) # [ 0.5317093  -0.10578898 -0.0108681 ]
             pose = fa.get_pose()
             pose.translation = global_pos + np.array([0.05, 0, 0]) # Observation Offset
             pose.translation[2] = 0.5
             fa.goto_pose(pose)
             do_grasp(save_path, query_tool = Object, query_task='pickup', fa=fa)
-            pose = fa.get_pose()
-            pose.translation[2] += 0.2
-            fa.goto_pose(pose)
         elif Location == "home pose":
             fa.reset_joints()
         else:
