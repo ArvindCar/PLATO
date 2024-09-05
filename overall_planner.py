@@ -67,8 +67,8 @@ Keep in mind that <location on object> must be a semantic description (not coord
 You cannot use any objects or actions not mentioned in the Objects and Actions list. 
 
 General Guidelines:
-Do not pick up dishes like bowls, plates, containers, lunch boxes, etc. Objects can be placed in them or taken out of them, but they themselves should not be moved.
-Everytime you use an object as  a tool, place it back in its original position before moving onto the next step of the process, if the next step doesn't involve the same tool.
+NEVER pick up dishes or containers (for example, bowls, plates, lunch boxes, etc). Objects can be placed in them or taken out of them, but they themselves should not be moved.
+Everytime you use an object as a tool, place it back in its original position before moving onto the next step of the process, if the next step doesn't involve the same tool.
 When you want to pick up an object just use 'Pick-up', you do not need to move to the object. This is because it handles the action of moving to the object as well as grasping it.
 When you want to place an object, you do not need to plan to move to it first. The low level planner will take care of that. You just need to say use the action keyword "Place".
 Home Pose refers to resetting the joints of the robot. This should only be used when all the tasks have been finished, as this represents a "resting" pose for the robot.

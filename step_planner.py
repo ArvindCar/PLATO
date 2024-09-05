@@ -44,7 +44,7 @@ def Plan2Action(Action, Location, Description = 'None', Object = 'None', Tool = 
 
                           Your response should be a series of steps in the format: Go-to: <Location> + (deltaX, deltaY, deltaZ cm), OR Grasp: <0/1>, OR Tilt: (ThetaX, ThetaY, ThetaZ degrees).
                           Go-to commands move the end effector, Grasp commands close/open the gripper, and Tilt commands roll/pitch/yaw the gripper. Grasp commands should only be used when you want to grasp or release a tool.
-                          Keep in mind that the Tilts are calculated absolutely, not relatively. Initially, they are (0, 0, 0 degrees). Also, the angles are calculated based on the right hand thumb rule (ie. Pitching down is a positive ThetaY angle).
+                          Keep in mind that the Tilts are calculated relatively, not absolutely. Initially, they are (0, 0, 0 degrees). Also, the angles are calculated based on the right hand thumb rule (ie. Pitching down is a positive ThetaY angle).
                           A Tilt command should have only 1 non-zero value.
                           Keep in mind that some actions will require the tool to be held at an angle, and not completely flat.
                           Any actions that you want to do should be described using these three commands, nothing else. If you want to perform more complex commands like applying forces, scooping, etc., reason them out so that they can broken down into these three fundamental building block commands.
@@ -72,20 +72,21 @@ def Plan2Action(Action, Location, Description = 'None', Object = 'None', Tool = 
                           Explanation:
                             1. Grasp: 1
                             Reasoning: This ensures that the spatula is grasped securely by the gripper
-                            1. Go-to: Original Position of Bagel + (-50, 0, 20 cm)
+                            2. Go-to: Original Position of Bagel + (-50, 0, 20 cm)
                             Reasoning: This ensures that the tool is positioned above an behind the bagel.
-                            2. Go-to: Original Position of Bagel + (-50, 0, 0 cm)
+                            3. Go-to: Original Position of Bagel + (-50, 0, 0 cm)
                             Reasoning: This lowers the tool so that the flat part of the spatula is horizontal, and behind the bagel, and thus can be used to scoop it up.
-                            3. Go-to: Original Position of Bagel + (10, 0, 0 cm)
+                            4. Go-to: Original Position of Bagel + (10, 0, 0 cm)
                             Reasoning: This slides the flat part of the spatula under the bagel, thereby picking it up
-                            4. Go-to: Original Position of Bagel + (10, 0, 10 cm)
+                            5. Go-to: Original Position of Bagel + (10, 0, 10 cm)
                             Reasoning: Now that we have scooped up the bagel using the spatula, we can lift it up securely.
 
                           Steps List: 
-                              1. Go-to: Original Position of Bagel + (-50, 0, 20 cm)
-                              2. Go-to: Original Position of Bagel + (-50, 0, 0 cm)
-                              3. Go-to: Original Position of Bagel + (10, 0, 0 cm)
-                              4. Go-to: Original Position of Bagel + (10, 0, 10 cm)
+                              1. Grasp: 1
+                              2. Go-to: Original Position of Bagel + (-50, 0, 20 cm)
+                              3. Go-to: Original Position of Bagel + (-50, 0, 0 cm)
+                              4. Go-to: Original Position of Bagel + (10, 0, 0 cm)
+                              5. Go-to: Original Position of Bagel + (10, 0, 10 cm)
                           <end of example>
                         """
         },
