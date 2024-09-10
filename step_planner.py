@@ -17,7 +17,7 @@ def ProcessString(input_string):
     return steps_nested
 
 
-def Plan2Action(Action, Location, Description = 'None', Object = 'None', Tool = 'None', prev_steps={}):
+def Plan2Action(Action, Location, Positioning, Description = 'None', Object = 'None', Tool = 'None', prev_steps={}):
     print("Starting Step Planner:") 
 
     client = OpenAI()
@@ -74,7 +74,7 @@ def Plan2Action(Action, Location, Description = 'None', Object = 'None', Tool = 
                             1. Grasp: 1
                             Reasoning: This ensures that the spatula is grasped securely by the gripper
                             2. Go-to: Original Position of Bagel + (-50, 0, 20 cm)
-                            Reasoning: This ensures that the tool is positioned above an behind the bagel.
+                            Reasoning: This ensures that the tool is positioned above and behind the bagel, since the Positioning instruction we are given is "Behind".
                             3. Go-to: Original Position of Bagel + (-50, 0, 0 cm)
                             Reasoning: This lowers the tool so that the flat part of the spatula is horizontal, and behind the bagel, and thus can be used to scoop it up.
                             4. Go-to: Original Position of Bagel + (10, 0, 0 cm)
@@ -99,6 +99,7 @@ def Plan2Action(Action, Location, Description = 'None', Object = 'None', Tool = 
                 "type": "text",
                 "text": f"""Action: {Action},
                             Location: {Location},
+                            Positioning: {Positioning}
                             Description: {Description}
                             Object: {Object},
                             Tool: {Tool}
@@ -119,11 +120,12 @@ def Plan2Action(Action, Location, Description = 'None', Object = 'None', Tool = 
     return(final_response)
 
 if __name__=="__main__":
-    Action = "Place"
-    Location = "Original Position of bowl"
-    Description = '[[],[0]]'
-    Object = "none"
-    Tool = "onion"
+    Action = "Scoop"
+    Location = "Original Position of pile of candy"
+    Positioning = "Behind"
+    Description = '[[10, 10, 10],[15]]'
+    Object = "pile of candy"
+    Tool = "spoon"
 
-    response = Plan2Action(Action, Location, Description, Object, Tool)
+    response = Plan2Action(Action, Location, Positioning, Description, Object, Tool)
     print(response)

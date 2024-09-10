@@ -221,22 +221,23 @@ def exec_experiment(fa, cam2, cam3, cam4, cam5, save_dir, Task, ActionList, home
             file.write(", ".join(StepsList[i-1]) + "\n")
             file.write("Actions:" + "\n")
 
-        Action, Location, Object, Tool = StepsList[i-1]
-        print(Action)
+        Action, Location, Positioning, Object, Tool = StepsList[i-1]
+
         if Tool == 'none': # Currently nothing is grasped
             fa.open_gripper()
             print("Nothing is grasped")
-            CommandList = Plan2Action(Action, Location, [[0], []], Object, Tool, prev_steps)
+            CommandList = Plan2Action(Action, Location, Positioning, [[0], []], Object, Tool, prev_steps)
         elif HandleDict[Tool] == 1: # Currently grasped object is a tool
             print("Currently grasped object is a tool")
-            CommandList = Plan2Action(Action, Location, [DescList[Object], [max(DescList[Tool])]], Object, Tool, prev_steps)
+            CommandList = Plan2Action(Action, Location, Positioning [DescList[Object], [max(DescList[Tool])]], Object, Tool, prev_steps)
         else: # Currently grasped object is not a tool
             print('Currently grasped object is not a tool')
-            CommandList = Plan2Action(Action, Location, [DescList[Object], [0]], Object, Tool, prev_steps) # This means that the "Tool" has no handle
-        #TODO: Write a condition to check if the next action is a grasp action
+            CommandList = Plan2Action(Action, Location, Positioning, [DescList[Object], [0]], Object, Tool, prev_steps) # This means that the "Tool" has no handle
+
         with open(save_path + '/CommandList', 'a') as file:
             for step in CommandList:
                 file.write(", ".join(step) + "\n")
+        
         if Action == "pickup" and HandleDict[Object] == 1:
             with open(save_path + '/CommandList', 'a') as file:
                 file.write("Affordance Model was queried" + "\n")
@@ -268,7 +269,6 @@ def exec_experiment(fa, cam2, cam3, cam4, cam5, save_dir, Task, ActionList, home
 
 
         # Termination check
-        # img1, _, _, _, _ = cam1.get_next_frame()
         img2, dimg2, pc2, _, _ = cam2.get_next_frame()
         img3, dimg3, pc3, _, _ = cam3.get_next_frame()
         img4, dimg4, pc4, _, _ = cam4.get_next_frame()
