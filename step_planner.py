@@ -6,7 +6,12 @@ from io import BytesIO
 
 def ProcessString(input_string):
     input_string = input_string.lower()
-    steps_list_part = input_string.split("steps list:")[1].strip()
+    parts = input_string.split("steps list:")
+    if len(parts) > 2:
+        steps_list_part = parts[-1].strip()
+    else:
+        # If there is only one "Steps List" heading, assume everything before it is "Explanation"
+        steps_list_part = parts[1].strip()
     steps = [step.split('. ', 1)[1] for step in steps_list_part.split('\n')]
     steps_nested = []
     for step in steps:
@@ -51,10 +56,16 @@ def Plan2Action(Action, Location, Positioning, Description = 'None', Object = 'N
                           
                           Reason out each step, and explain the intended effect for each step. 
                           Guidelines:
-                            Keep in mind that you might want to end a pick up action by liftng the object you grasped. 
+                            Be very careful about the Tilt commands' sign convention: 
+                            Positive ThetaY - Tilt up
+                            Negative ThetaY - Tilt down
+                            Positive ThetaZ - Rotate Left
+                            Negative ThetaZ - Rotate Right
+                            Positive ThetaX - Twist clockwise
+                            Negative ThetaX - Twist anti-clockwise
                             When releasing an object inside a container, do not go to "Original Position of the container + (0, 0, 0 cm)", as this will be inside the container. Instead, drop it from a height, ie. "Original Position of the container + (0, 0, 10 cm)"so that it is easier to open the gripper. 
                             Assume that all upstream tasks for the given step have been completed successfully.
-                          At the end list out just the steps involved (no other information).
+                          After providing an explanatio, at the end list out just the steps involved (no other information).
 
                           Keep in mind that if you want to place objects in any type of container, it is okay to drop them into the container (from 10 cm above the container)
 
@@ -70,24 +81,27 @@ def Plan2Action(Action, Location, Positioning, Description = 'None', Object = 'N
                             Previous Steps: []
                           
                           [Expected Output]:
-                          Explanation:
+                          Reasoning:
                             1. Grasp: 1
-                            Reasoning: This ensures that the spatula is grasped securely by the gripper
-                            2. Go-to: Original Position of Bagel + (-50, 0, 20 cm)
-                            Reasoning: This ensures that the tool is positioned above and behind the bagel, since the Positioning instruction we are given is "Behind".
-                            3. Go-to: Original Position of Bagel + (-50, 0, 0 cm)
-                            Reasoning: This lowers the tool so that the flat part of the spatula is horizontal, and behind the bagel, and thus can be used to scoop it up.
+                            Explanation: This ensures that the spatula is grasped securely by the gripper
+                            2. Go-to: Original Position of Bagel + (-65, 0, 25 cm)
+                            Explanation: This ensures that the tool is positioned above and behind the bagel, since the Positioning instruction we are given is "Behind". We get the measurement "-65 cm" by accounting for the length of the tool, and half the X-dimension of the object (50 + 15).
+                            3. Go-to: Original Position of Bagel + (-65, 0, -5 cm)
+                            Explanation: This lowers the tool so that the flat part of the spatula is flush with the table, and behind the bagel, and thus can be used to scoop it up. We get the measurement "-5 cm" by taking half of the Z-dimension of the bagel. Without this, we would be in line with the center of the bagel, which would be above the table.
                             4. Go-to: Original Position of Bagel + (10, 0, 0 cm)
-                            Reasoning: This slides the flat part of the spatula under the bagel, thereby picking it up
-                            5. Go-to: Original Position of Bagel + (10, 0, 10 cm)
-                            Reasoning: Now that we have scooped up the bagel using the spatula, we can lift it up securely.
+                            Explanation: This slides the flat part of the spatula under the bagel, thereby picking it up
+                            5. Tilt: (0, 30, 0)
+                            Explanation: Tilting by a Positive ThetaY means we are tilting upwards. This makes the end of the spatula move up, thus ensuring that the bagel is securely held.
+                            6. Go-to: Original Position of Bagel + (10, 0, 20 cm)
+                            Explanation: Now that we have scooped up the bagel using the spatula, we can lift it up securely.
 
                           Steps List: 
                               1. Grasp: 1
-                              2. Go-to: Original Position of Bagel + (-50, 0, 20 cm)
-                              3. Go-to: Original Position of Bagel + (-50, 0, 0 cm)
+                              2. Go-to: Original Position of Bagel + (-65, 0, 20 cm)
+                              3. Go-to: Original Position of Bagel + (-65, 0, 0 cm)
                               4. Go-to: Original Position of Bagel + (10, 0, 0 cm)
-                              5. Go-to: Original Position of Bagel + (10, 0, 10 cm)
+                              5. Tilt: (0, 30, 0)
+                              6. Go-to: Original Position of Bagel + (10, 0, 25 cm)
                           <end of example>
                         """
         },

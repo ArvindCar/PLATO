@@ -52,10 +52,10 @@ def SceneComprehension(image_path, task):
             "role": "system", 
             "content": """You will be given an image of a table with several objects on it. You will also be given a task which is to be performed by downstream LLMs, within this scene.
                           Your task is to observe the image and list out the various objects present on the table, ensuring the descriptions are brief and relevant to the context of the given task. It is even better if you incorporate the exact phrases from the task provided.
-                          For example, if the task involves adding mustard sauce, clearly identify the object as "plastic mustard bottle" rather than just "plastic sauce bottle."
+                          For example, if the task involves adding mustard sauce, clearly identify the object as "plastic mustard bottle" rather than just "plastic sauce bottle." Try to use phrases from the task as well.
                           You are also required to provide a binary value, indicating if the object has a handle (1) or not (0).
                           Ignore any markings on the table itself.
-                          Your output should 2 lists: One should be a comma seperated list of objects, in alphabetical order, and the other should be a correspodning list of their binary handle flags.
+                          Your output should 2 lists: One should be a comma seperated list of objects, in alphabetical order, and the other should be a corresponding list of their binary handle flags.
                           Try to describe the objects very briefly using the context provided. 
                           For example, if the task is related to metal objects, use the descriptor 'metal' before each object.
                           For example if you see a deformed ball like shape on the table, and the task is to "Make a cookie", then the ball object is most likely "ball of dough".
@@ -69,7 +69,7 @@ def SceneComprehension(image_path, task):
             [
             {
                 "type": "text",
-                "text": f"What objects are present in the given image? The task that this image is related to is {task}"
+                "text": f"What objects are present in the given image? The task that this image is related to is <{task}>"
             },
             {
                 "type": "image_url",

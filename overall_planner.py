@@ -33,7 +33,6 @@ def OverallPlanner(Task, ObjList, PosList, ActionList, StepsList=[], step=0):
                         "text": f"""Task: {Task},
                                     Objects: {ObjList},
                                     Positions: {PosList},
-                                    Actions: {ActionList}
                                 """
                         }
         
@@ -49,13 +48,12 @@ Your inputs will be of the form:
     Task: The overall goal that your plan needs to achieve.
     Objects: A list of objects available to you
     Positions: A set of fixed positions in the robot workspace available for the robot to move to, consisting of semantic descriptions. You must use only these locations. You can however, mention positions relative to these positions
-    Actions: A set of actions (ie. robot motion primitives) that you can use to construct your plan. You must pick your actions from this list.
 Stick to these phrases exactly! Do not add any extra punctuations either.
 
 This plan will be executed by a parallel plate gripper, so keep that in mind while constructing the plan.
 Each step in your plan should strictly follow the format '<action>, <location>, <positioning>, <object>, <tool>'.
     action - it is the action that you want the robot arm to perform (Example: roll, flatten, push, etc.)
-    location - it is the location in the workspace that you wish to go-to (Eg: In front, Behind, to the side)
+    location - it is the location in the workspace that you wish to go-to (Eg: In front, Behind, to the side, above, etc.). In general, you will use "Behind" whenever you are grasping the object, in order to account for its length.
     positioning - it is how you want to be positioned relative to the location
     object - it is the object that you want the robot arm to interact with. It must not currently be held by the gripper (Example: hammer, spoon, etc.)
     tool - it is the tool currently held by the gripper (Example: hammer, spoon, etc.)
@@ -77,13 +75,12 @@ Home Pose refers to resetting the joints of the robot. This should only be used 
 
 Take a look at the example below. Strictly follow the format of Expected Output.
 <start of example>
-[### User Input]:
+[User Input]:
     Task: "Place the head of the hammer on the bench",
     Objects: ['hammer', 'bench'],
     Positions: ["Original Position of Hammer", "Original Position of bench"],
-    Actions: ["Pick-up", "Release", "Move-to"]
 
-[### Expected Output]:
+[Expected Output]:
     Reasoning:
     1. Pick-up, Original Position of Hammer, None, hammer, None
     Explanation: We use the keyword Pick-up to pickup the hammer.
@@ -202,9 +199,9 @@ Take a look at the example below. Strictly follow the format of Expected Output.
 
 if __name__=="__main__":
     # image_path = "Trials/Real_table_w_tools.jpg"
-    Task = "Scoop up candy"
-    ObjList = ["pile of candy", "Spoon"]
-    PosList = ["homepose", "Original Position of Spoon", "Original Position of pile of candy"]
+    Task = "Scoop up the pile of candy and pour it in the bowl."
+    ObjList = ["pile of candy", "scoop", "bowl"]
+    PosList = ["homepose", "Original Position of Spoon", "Original Position of pile of candy", "Original Position of bowl"]
     ActionList = ["Push-down", "Move-to", "Grasp", "Release", "Roll", "Pour"]
     response = OverallPlanner(Task, ObjList, PosList, ActionList, StepsList=[], step=0)
     print(response)

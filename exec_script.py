@@ -115,7 +115,7 @@ def run_command(act, feature, deltas, fa):
 
     elif act == "tilt":
         print("Feature: ", feature)
-        angles = re.findall(r'(\d+)', feature)  # Finds all numeric parts
+        angles = re.findall(r'-?\d+', feature)  # Finds all numeric parts
         angles = [float(angle) for angle in angles]  # Convert to float
         print("Angles: ", angles)
 
@@ -132,7 +132,7 @@ def run_command(act, feature, deltas, fa):
         
         # Tilt around the y-axis
         elif angles[1] != 0:
-            pose.rotation = rotate_y(home_rotation, np.radians(angles[1]))
+            pose.rotation = rotate_y(home_rotation, np.radians(-angles[1]))
         
         # Tilt around the z-axis
         elif angles[2] != 0:
@@ -141,22 +141,13 @@ def run_command(act, feature, deltas, fa):
     return
 
 def exec_experiment(fa, cam2, cam3, cam4, cam5, save_dir, Task, ActionList, home_pose, done_queue):    
-    # cam6 = vis.CameraClass(cam_number=6) # This is the overview camera
-    # W = 1280
-    # H = 800
-    # pipeline = rs.pipeline()
-    # config = rs.config()
-    # config.enable_device('152522250441')
-    # config.enable_stream(rs.stream.color, W, H, rs.format.bgr8, 30)
-    # pipeline.start(config)
 
-    # img1, _, _, _, _ = cam1.get_next_frame()
+    home_rotation = fa.get_pose().rotation
+    gripper_cam = vis.CameraClass(1, W = 1280, H = 720)
     img2, dimg2, pc2, _, _ = cam2.get_next_frame()
     img3, dimg3, pc3, _, _ = cam3.get_next_frame()
     img4, dimg4, pc4, _, _ = cam4.get_next_frame()
     img5, dimg5, pc5, _, _ = cam5.get_next_frame()
-
-    # img6, _, _, _, _ = cam6.get_next_frame()
     
     save_path = save_dir + '/step0'
     max_size = 512
@@ -176,11 +167,24 @@ def exec_experiment(fa, cam2, cam3, cam4, cam5, save_dir, Task, ActionList, home
         dimg.thumbnail((max_size, max_size))
         dimg.save(save_path + f"/Depth{j+2}.png")
 
+    # This script is for Aff model calib:
+    
+    # obj = 'flat pressing tool'
+    # global_pos, _ = get_centroid(cam2, cam3, cam4, cam5, obj, save_pc = False, save_path = save_dir, viz = False)
+    # print("centroid: ",global_pos) # [ 0.5417093  0.08778898 -0.0108681 ]
+    # pose = fa.get_pose()
+    # pose.translation = global_pos + np.array([0.05, 0, 0]) # Observation Offset
+    # pose.translation[2] = 0.4
+    # fa.goto_pose(pose)
+    # do_grasp(save_path, query_tool = obj, query_task='pickup', fa=fa)
+    # return
+        
 
 
     # Query Scene comp, get list of objects
 
     ObjList, HandleFlags = SceneComprehension(save_path, Task)
+
     with open(save_dir + '/ObjList', 'a') as file:
             file.write(", ".join(ObjList) + "\n")
             file.write(str(HandleFlags) + "\n")
@@ -196,7 +200,7 @@ def exec_experiment(fa, cam2, cam3, cam4, cam5, save_dir, Task, ActionList, home
     DescList = {obj: [] for obj in ObjList}
     ObjLocList = []
     for obj in ObjList:
-        centroid, description = get_centroid(cam2, cam3, cam4, cam5, obj, save_pc = True, save_path=save_dir, viz = False)
+        centroid, description = get_centroid(cam2, cam3, cam4, cam5, obj, save_pc = True, save_path=save_dir, viz = True)
         ObjLocList.append(centroid)
         DescList[obj] = description*100
     DescList['none'] = []
@@ -229,7 +233,7 @@ def exec_experiment(fa, cam2, cam3, cam4, cam5, save_dir, Task, ActionList, home
             CommandList = Plan2Action(Action, Location, Positioning, [[0], []], Object, Tool, prev_steps)
         elif HandleDict[Tool] == 1: # Currently grasped object is a tool
             print("Currently grasped object is a tool")
-            CommandList = Plan2Action(Action, Location, Positioning [DescList[Object], [max(DescList[Tool])]], Object, Tool, prev_steps)
+            CommandList = Plan2Action(Action, Location, Positioning, [DescList[Object], [max(DescList[Tool])]], Object, Tool, prev_steps)
         else: # Currently grasped object is not a tool
             print('Currently grasped object is not a tool')
             CommandList = Plan2Action(Action, Location, Positioning, [DescList[Object], [0]], Object, Tool, prev_steps) # This means that the "Tool" has no handle
@@ -242,13 +246,15 @@ def exec_experiment(fa, cam2, cam3, cam4, cam5, save_dir, Task, ActionList, home
             with open(save_path + '/CommandList', 'a') as file:
                 file.write("Affordance Model was queried" + "\n")
             # Query SAM to get centroid position of Object
-            global_pos, _ = get_centroid(cam2, cam3, cam4, cam5, Object, save_pc = False, save_path = save_dir, viz = False)
-            print("centroid: ",global_pos) # [ 0.5317093  -0.10578898 -0.0108681 ]
+            # global_pos, _ = get_centroid(cam2, cam3, cam4, cam5, Object, save_pc = False, save_path = save_dir, viz = False)
+            global_pos = LocDict[f"original position of {Object}"]
+            print("centroid: ",global_pos) # [ 0.5417093  0.08778898 -0.0108681 ]
             pose = fa.get_pose()
             pose.translation = global_pos + np.array([0.05, 0, 0]) # Observation Offset
-            pose.translation[2] = 0.5
+            pose.translation[2] = 0.45
+            pose.rotation = home_rotation
             fa.goto_pose(pose)
-            do_grasp(save_path, query_tool = Object, query_task='pickup', fa=fa)
+            do_grasp(save_path, gripper_cam, query_tool = Object, query_task='pickup', fa=fa)
         elif Location == "home pose":
             fa.reset_joints()
         else:
@@ -340,7 +346,7 @@ def video_loop(cam_pipeline, save_path, done_queue):
 
 if __name__ == "__main__":
     #TODO:
-    Task = "Scoop up the candy"
+    Task = "Scoop the candy pile using the scooping tool and pour it into the bowl"
 
     #TODO: Change this to be generated by an LLM
     ActionList = ["Pick-up", "Push-down", "Move-to", "Release", "Roll", "Scoop", "Pour"]
