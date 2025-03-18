@@ -128,7 +128,7 @@ Example answers for plan:
     )
     response = completion.choices[0].message.content
     print(response)
-    return(ProcessString(response))
+    return response
 
 if __name__=="__main__":
     # image_path = "Trials/Real_table_w_tools.jpg"

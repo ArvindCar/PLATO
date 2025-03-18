@@ -21,7 +21,7 @@ def ProcessString(input_string):
     nested_list = [[re.sub(r'[^\w\s]', '', substep) for substep in step.split('. ', 1)[1].split(', ')] for step in steps]
     return nested_list
   
-def OverallPlanner(Task, ObjList, PosList, ActionList, StepsList=[], step=0):
+def Coder(Task, ObjList, PosList, ActionList, StepsList=[], step=0):
 
     print("Starting Overall Planner:")
     client = OpenAI()
@@ -109,7 +109,7 @@ In the following, I provide you the generated plan and you respond with the code
     )
     response = completion.choices[0].message.content
     print(response)
-    return(ProcessString(response))
+    return response
 
 if __name__=="__main__":
     # image_path = "Trials/Real_table_w_tools.jpg"
@@ -117,6 +117,6 @@ if __name__=="__main__":
     ObjList = ["pile of candy", "scoop", "bowl"]
     PosList = ["homepose", "Original Position of Spoon", "Original Position of pile of candy", "Original Position of bowl"]
     ActionList = ["Push-down", "Move-to", "Grasp", "Release", "Roll", "Pour"]
-    response = OverallPlanner(Task, ObjList, PosList, ActionList, StepsList=[], step=0)
+    response = Coder(Task, ObjList, PosList, ActionList, StepsList=[], step=0)
     print(response)
 
