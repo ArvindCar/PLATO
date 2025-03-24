@@ -1,4 +1,3 @@
-
 from openai import OpenAI
 import base64
 from PIL import Image
@@ -16,36 +15,52 @@ def encode_image(image):
         return base64.b64encode(buffer.getvalue()).decode('utf-8')
     
 def ProcessString(input_string):
-    input_string = input_string.lower()
-    input_string = input_string.split('overall plan:')[1]
-    steps = [step.strip() for step in input_string.strip().split('\n')]
-    nested_list = [[re.sub(r'[^\w\s]', '', substep) for substep in step.split('. ', 1)[1].split(', ')] for step in steps]
-    return nested_list
+    """
+    Process the response string from the LLM to extract analysis and plan parts.
+    
+    Args:
+        input_string: The response string from the LLM
+    
+    Returns:
+        Tuple of (analysis_text, plan_text)
+    """
+    # Find the analysis section
+    analysis_start = input_string.find("<start of analysis>")
+    analysis_end = input_string.find("<end of analysis>")
+    
+    # Find the plan section
+    plan_start = input_string.find("<start of plan>")
+    plan_end = input_string.find("<end of plan>")
+    
+    # Extract the text from each section
+    analysis_text = ""
+    plan_text = ""
+    
+    if analysis_start != -1 and analysis_end != -1:
+        analysis_text = input_string[analysis_start + len("<start of analysis>"):analysis_end].strip()
+    
+    if plan_start != -1 and plan_end != -1:
+        plan_text = input_string[plan_start + len("<start of plan>"):plan_end].strip()
+    
+    return analysis_text, plan_text
   
-def OverallPlanner(Task, ObjList, PosList, ActionList, StepsList=[], step=0):
-
-    print("Starting Overall Planner:")
+def Planner(UserPrompt_description):
+    print("Starting Planner:")
     client = OpenAI()
 
-    if step==0:
-        # TODO: Fix this to be the user prompt
-        info_prompt = {"type": "text",
-                        "text": f"""Task: {Task},
-                                    Objects: {ObjList},
-                                    Positions: {PosList},
-                                """
-                        }
-        
-
-
+    info_prompt = {"type": "text",
+                   "text": f"""{UserPrompt_description}
+                           """
+                  }
     
-        prompt = [
-            {
-                "role": "system", 
-                "content": """You must follow the following answer template:
+    prompt = [
+        {
+            "role": "system", 
+            "content": """You must strictly follow the answer format below (your response will be programmatically parsed):
  
-Given an object list [OBJECT1, OBJECT2, OBJECT3, OBJECT4, ...]
 <start of analysis>
+Given an object list [OBJECT1, OBJECT2, OBJECT3, OBJECT4, ...]
+
 [OBJECT1]: ...
 [OBJECT2]: ...
 [OBJECT3]: ...
@@ -61,6 +76,13 @@ The spatial relationship ...
 ...
 [Abstract Plan]: ...
 <end of analysis>
+
+<start of plan>
+* Use the [SKILL] to [SINGLE_TASK].
+* Use the [SKILL] to [SINGLE_TASK].
+* Use the [SKILL] to [SINGLE_TASK].
+...
+<end of plan>
 
 Rules for analysis:
 * You must only choose [OBJECT] from the object list. 
@@ -107,35 +129,30 @@ Example:
 * Use the 'move_to_position' to move the gripper close to the graspable point before grasping it.
 * Use the 'close_gripper' to grasp the [OBJECT].
 
-Example answers for plan:
-<start of plan>
-* Use the [SKILL] to [SINGLE_TASK].
-<end of plan>"""
-                },
-            {
-                "role": "user",
-                "content": 
-                [
-                    info_prompt
-                ]
-            }
-        ]
+IMPORTANT: Your response must have exactly two sections enclosed in the <start> and <end> tags. First the analysis section, then the plan section."""
+            },
+        {
+            "role": "user",
+            "content": 
+            [
+                info_prompt
+            ]
+        }
+    ]
 
-    
     completion = client.chat.completions.create(
         model='gpt-4o',
         messages=prompt
     )
     response = completion.choices[0].message.content
-    print(response)
-    return response
+    
+    # Process the response to extract analysis and plan sections
+    analysis, plan = ProcessString(response)
+    return analysis, plan
 
 if __name__=="__main__":
     # image_path = "Trials/Real_table_w_tools.jpg"
-    Task = "Scoop up the pile of candy and pour it in the bowl."
-    ObjList = ["pile of candy", "scoop", "bowl"]
-    PosList = ["homepose", "Original Position of Spoon", "Original Position of pile of candy", "Original Position of bowl"]
-    ActionList = ["Push-down", "Move-to", "Grasp", "Release", "Roll", "Pour"]
-    response = OverallPlanner(Task, ObjList, PosList, ActionList, StepsList=[], step=0)
-    print(response)
+    UserPromp_description = """."""
+    analysis, plan = Planner(UserPromp_description)
+    print(analysis, plan)
 

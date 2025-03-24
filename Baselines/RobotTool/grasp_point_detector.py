@@ -60,19 +60,28 @@ def GraspPointDetection(objects, positions, dimensions):
                           - Stability during grasping
                           - Accessibility of the grasp point
                           
-                          Your output should be a Python dictionary where:
-                          - Keys are the object names
-                          - Values are [x, y, z] coordinates representing the best grasp points
+                          Your output should be a clean Python dictionary with:
+                          - Keys as the object names
+                          - Values as [x, y, z] coordinates for the grasp points
                           
-                          The grasp point coordinates should be relative to the object's position.
-                          For example, if an object position is [10, 20, 0] and you suggest grasping 2 units to the right,
-                          the grasp point would be [12, 20, 0].
+                          IMPORTANT: Do not include comments or explanations in the dictionary.
+                          The output must be valid Python that can be directly parsed with ast.literal_eval().
                           
-                          Example output:
+                          The grasp point coordinates should be absolute coordinates in the world frame.
+                          
+                          Example of correct output format:
                           {
                               "cup": [10.5, 20.0, 2.5],
                               "plate": [15.0, 18.0, 0.5]
-                          }"""
+                          }
+                          
+                          Example of incorrect output format (contains comments):
+                          {
+                              "cup": [10.5, 20.0, 2.5],  # Grasp at the handle
+                              "plate": [15.0, 18.0, 0.5]  # Grasp at the edge
+                          }
+                          
+                          Only provide the dictionary with no additional text."""
         },
         {
             "role": "user",
@@ -86,6 +95,7 @@ def GraspPointDetection(objects, positions, dimensions):
     )
     
     response = completion.choices[0].message.content
+    print(response)
     grasp_points = ProcessResponse(response)
     return grasp_points
 

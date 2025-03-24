@@ -21,27 +21,23 @@ def ProcessString(input_string):
     nested_list = [[re.sub(r'[^\w\s]', '', substep) for substep in step.split('. ', 1)[1].split(', ')] for step in steps]
     return nested_list
   
-def Coder(Task, ObjList, PosList, ActionList, StepsList=[], step=0):
+def Coder(plan):
 
-    print("Starting Overall Planner:")
+    print("Starting Coder:")
     client = OpenAI()
 
-    if step==0:
-        # TODO: Fix this to be the user prompt
-        info_prompt = {"type": "text",
-                        "text": f"""Task: {Task},
-                                    Objects: {ObjList},
-                                    Positions: {PosList},
-                                """
-                        }
-        
-
-
+    info_prompt = {"type": "text",
+                    "text": f"""Plan skeleton with numerical values: {plan}
+                            """
+                    }
     
-        prompt = [
-            {
-                "role": "system", 
-                "content": """You are a robot arm.
+
+
+
+    prompt = [
+        {
+            "role": "system", 
+            "content": """You are a robot arm.
 The robot has a skill set: ['get_center', 'get_graspable_point', 'get_size', 'move_to_position', 'open_gripper', 'close_gripper', 'get_workspace_range'].
 You have a description of the plan to finish a task. We want you to turn the plan into the corresponding program with following functions:
 ```
@@ -92,15 +88,15 @@ x_min, y_min, z_min, x_max, y_max, z_max = get_workspace_range()
 ```
 
 In the following, I provide you the generated plan and you respond with the code."""
-                },
-            {
-                "role": "user",
-                "content": 
-                [
-                    info_prompt
-                ]
-            }
-        ]
+            },
+        {
+            "role": "user",
+            "content": 
+            [
+                info_prompt
+            ]
+        }
+    ]
 
     
     completion = client.chat.completions.create(
