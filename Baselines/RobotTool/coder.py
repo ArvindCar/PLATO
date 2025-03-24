@@ -15,11 +15,30 @@ def encode_image(image):
         return base64.b64encode(buffer.getvalue()).decode('utf-8')
     
 def ProcessString(input_string):
-    input_string = input_string.lower()
-    input_string = input_string.split('overall plan:')[1]
-    steps = [step.strip() for step in input_string.strip().split('\n')]
-    nested_list = [[re.sub(r'[^\w\s]', '', substep) for substep in step.split('. ', 1)[1].split(', ')] for step in steps]
-    return nested_list
+    """
+    Preprocess a code string to remove markdown code block formatting.
+    
+    Args:
+        code_string (str): The input code string, possibly with markdown formatting.
+        
+    Returns:
+        str: The cleaned code string ready for execution.
+    """
+    # Check if the string contains markdown code blocks
+    if input_string.startswith("```"):
+        # Find the end of the first line (which might contain "python")
+        first_line_end = input_string.find('\n')
+        if first_line_end != -1:
+            # Find the closing backticks
+            closing_backticks = input_string.rfind("```")
+            if closing_backticks > first_line_end:
+                # Extract just the code between the backticks
+                input_string = input_string[first_line_end+1:closing_backticks].strip()
+            else:
+                # If no closing backticks are found, just remove the opening ones
+                input_string = input_string[first_line_end+1:].strip()
+                
+    return input_string
   
 def Coder(plan):
 
@@ -56,7 +75,7 @@ def get_size(object_name):
   
 ```
 ```
-def move_to_position(target_position):
+def move_to_position(position):
 ```
 ```
 def open_gripper():
@@ -103,7 +122,7 @@ In the following, I provide you the generated plan and you respond with the code
         model='gpt-4o',
         messages=prompt
     )
-    response = completion.choices[0].message.content
+    response = ProcessString(completion.choices[0].message.content)
     print(response)
     return response
 

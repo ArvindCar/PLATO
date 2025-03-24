@@ -1,18 +1,18 @@
-# from frankapy import FrankaArm
-# import robomail.vision as vis
+from frankapy import FrankaArm
+import robomail.vision as vis
 from PIL import Image
 import numpy as np
 import os
-# import pyrealsense2 as rs
+import pyrealsense2 as rs
 import sys
 import ast
 from datetime import datetime
 import queue
 import threading
-# import cv2
+import cv2
 import re
 
-
+from PLATO.scene_comprehension import SceneComprehension
 from grasp_point_detector import GraspPointDetection
 from analyzer import Analyzer
 from planner import Planner
@@ -140,9 +140,62 @@ sys.path.append('/home/arvind/LLM_Tool/grasping/grasping/os_tog/notebooks')
 #             pose.rotation = rotate_z(home_rotation, np.radians(angles[2]))
 #         fa.goto_pose(pose)
 #     return
+LocDict = {}
+GraspDict = {}
+DescDict = {}
+fa = None
+
+def get_center(object_name):
+    object_center_position = LocDict[f"original position of {object_name}"]
+    return object_center_position
+  
+
+
+def get_graspable_point(object_name):
+    object_graspable_point = GraspDict[object_name]
+    return object_graspable_point
+  
+
+
+def get_size(object_name):
+    object_size = DescDict[object_name]
+    return object_size
+  
+
+
+def move_to_position(target_position):
+    global fa
+    pose = fa.get_pose()
+    pose.translation = target_position
+    fa.goto_pose(pose)
+    return
+
+
+def open_gripper():
+    fa.open_gripper()
+
+
+def close_gripper():
+    fa.close_gripper()
+
+
+def get_workspace_range(self):
+    # Access the FC constant from your Franka module
+    from frankapy.franka_constants import FrankaConstants as FC  # Adjust import as needed
+    
+    # Extract min and max values from WORKSPACE_WALLS
+    min_values = FC.WORKSPACE_WALLS[:, :3].min(axis=0)
+    max_values = FC.WORKSPACE_WALLS[:, :3].max(axis=0)
+    
+    # Unpack values
+    x_min, y_min, z_min = min_values
+    x_max, y_max, z_max = max_values
+    
+    return x_min, y_min, z_min, x_max, y_max, z_max
+    
 
 def exec_experiment(fa=None, cam2=None, cam3=None, cam4=None, cam5=None, save_dir="/home/arvind/PLATO_Revisions/PLATO/Baselines/RobotTool/Trials", Task="Grasp milk", ActionList=[], home_pose=None, done_queue=None):    
-
+    global LocDict, GraspDict, DescDict
     if home_pose is None:
         home_pose = type('obj', (object,), {
             'translation': np.array([0.3, 0.0, 0.3]),
@@ -151,7 +204,7 @@ def exec_experiment(fa=None, cam2=None, cam3=None, cam4=None, cam5=None, save_di
     
     # Create save_path even if cameras aren't provided
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    save_path = save_dir + f'/step0_{timestamp}'
+    save_path = save_dir + f'/{Task}_{timestamp}'
     max_size = 512
     os.makedirs(save_path, exist_ok=True)
     
@@ -195,7 +248,7 @@ def exec_experiment(fa=None, cam2=None, cam3=None, cam4=None, cam5=None, save_di
     # Query Scene comp, get list of objects
 
     # ObjList, HandleFlags = SceneComprehension(save_path, Task)
-    ObjList = ['milk', 'hammer', 'stuffed_toy', 'lock']
+    ObjList = ['plastic broccoli', 'plastic container', 'plastic strawberry', 'plastic toy carrot', 'plastic toy onion']
 
     
     PosList = [f"original position of {obj}" for obj in ObjList]
@@ -204,13 +257,12 @@ def exec_experiment(fa=None, cam2=None, cam3=None, cam4=None, cam5=None, save_di
     print("Object List: ", ObjList)
     
     #TODO: Query Point-LLM, to get positions
-    DescList = {obj: [] for obj in ObjList}
+    DescDict = {obj: [] for obj in ObjList}
     ObjLocList = []
     for obj in ObjList:
         if all(cam is not None for cam in [cam2, cam3, cam4, cam5]):
-            continue
             # Use actual cameras to get centroids
-            # centroid, analyzer_description = get_centroid(cam2, cam3, cam4, cam5, obj, save_pc=True, save_path=save_dir, viz=True)
+            centroid, analyzer_description = get_centroid(cam2, cam3, cam4, cam5, obj, save_pc=True, save_path=save_dir, viz=True)
         else:
             # Generate random values for testing when cameras aren't available
             print(f"Cameras not provided, generating random values for {obj}")
@@ -244,17 +296,17 @@ def exec_experiment(fa=None, cam2=None, cam3=None, cam4=None, cam5=None, save_di
             print(f"  Dimensions: {analyzer_description}")
         
         ObjLocList.append(centroid)
-        DescList[obj] = analyzer_description
+        DescDict[obj] = analyzer_description
     
-    DescList['none'] = []
+    DescDict['none'] = []
     ObjLocList.append(home_pose.translation)
     LocDict = dict(zip(PosList, ObjLocList))
 
 
-    GraspDict = GraspPointDetection(ObjList, ObjLocList[:-1], list(DescList.values()))
+    GraspDict = GraspPointDetection(ObjList, ObjLocList[:-1], list(DescDict.values()))
     print("GraspDict: ", GraspDict)
 
-    UserPrompt = f"""You are in a 3D world. You are a robot arm mounted on a table. You can control the end effector's position and gripper. Object list = {ObjList}. You want to grasp the milk.
+    UserPrompt = f"""You are in a 3D world. You are a robot arm mounted on a table. You can control the end effector's position and gripper. Object list = {ObjList}. You want to {Task}.
 
 Numerical scene information:
 - The position is represented by a 3D vector [x, y, z]. The axes are perpendicular to each other.
@@ -262,7 +314,7 @@ Numerical scene information:
     L = ""
     for obj in ObjList:
         center = LocDict[f"original position of {obj}"]
-        size = DescList[obj]
+        size = DescDict[obj]
         grasp_location = GraspDict[obj]
         L += f"\n- [{obj}]: <center>: {center}; <size>: {size}; <graspable point>: {grasp_location};"
 
@@ -455,80 +507,90 @@ Numerical scene information:
         #     StepsList = OverallPlanner(Task, ObjList, PosList, ActionList, StepsList, i)
     # done_queue.put("Done")
 
-# def video_loop(cam_pipeline, save_path, done_queue):
-#     print("Starting video Recording")
-#     # Use 'mp4v' codec for MP4 format
-#     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+def video_loop(cam_pipeline, save_path, done_queue):
+    print("Starting video Recording")
+    # Use 'mp4v' codec for MP4 format
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     
-#     # Ensure the save directory exists
-#     if not os.path.exists(save_path):
-#         os.mkdir(save_path)
+    # Ensure the save directory exists
+    if not os.path.exists(save_path):
+        os.mkdir(save_path)
 
-#     video_resolution = (600, 900)
+    video_resolution = (600, 900)
 
-#     # Save video as MP4
-#     out = cv2.VideoWriter(save_path + '/video.mp4', fourcc, 30.0, video_resolution)
-#     # frame_save_counter = 0
+    # Save video as MP4
+    out = cv2.VideoWriter(save_path + '/video.mp4', fourcc, 30.0, video_resolution)
+    # frame_save_counter = 0
     
-#     # Record until main loop is complete
-#     while done_queue.empty():
-#         frames = cam_pipeline.wait_for_frames()
-#         color_frame = frames.get_color_frame()
-#         color_image = np.asanyarray(color_frame.get_data())
+    # Record until main loop is complete
+    while done_queue.empty():
+        frames = cam_pipeline.wait_for_frames()
+        color_frame = frames.get_color_frame()
+        color_image = np.asanyarray(color_frame.get_data())
 
-#         # Crop and rotate the image to just show elevated stage area
-#         cropped_image = color_image[100:700, 220:1120, :]
-#         rotated_image = cv2.rotate(cropped_image, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        # Crop and rotate the image to just show elevated stage area
+        cropped_image = color_image[100:700, 220:1120, :]
+        rotated_image = cv2.rotate(cropped_image, cv2.ROTATE_90_COUNTERCLOCKWISE)
         
-#         out.write(rotated_image)
+        out.write(rotated_image)
     
-#     cam_pipeline.stop()
-#     out.release()
+    cam_pipeline.stop()
+    out.release()
 
+def initialize_robot():
+    """Initialize the robot arm if not already initialized"""
+    global fa
+    if fa is None:
+        try:
+            fa = FrankaArm()
+            print("Robot arm initialized successfully")
+            return True
+        except Exception as e:
+            print(f"Failed to initialize robot arm: {e}")
+            return False
+    return True
 
 if __name__ == "__main__":
 
+    # exec_experiment()
+    
+    #TODO:
+    Task = "Place the broccoli next to the strawberry."
 
-    exec_experiment()
+    #TODO: Change this to be generated by an LLM
+    ActionList = ["Pick-up", "Push-down", "Move-to", "Release", "Roll", "Scoop", "Pour"]
 
-#     #TODO:
-#     Task = "Scoop the candy pile using the scooping tool and pour it into the bowl"
+    #TODO:
+    base_dir = "/home/arvind/LLM_Tool/Save_dir/"
+    timestamp = datetime.now().strftime("%m%d_%H%M%S")
 
-#     #TODO: Change this to be generated by an LLM
-#     ActionList = ["Pick-up", "Push-down", "Move-to", "Release", "Roll", "Scoop", "Pour"]
+    new_dir_name = f"{Task}_{timestamp}"
+    save_dir = os.path.join(base_dir, new_dir_name)
 
-#     #TODO:
-#     base_dir = "/home/arvind/LLM_Tool/Save_dir/"
-#     timestamp = datetime.now().strftime("%m%d_%H%M%S")
+    os.makedirs(save_dir, exist_ok=True)
+    initialize_robot()
+    fa.reset_joints()
+    fa.open_gripper()
+    home_pose = fa.get_pose()
+    # cam1 = vis.CameraClass(cam_number=1)
+    cam2 = vis.CameraClass(cam_number=2)
+    cam3 = vis.CameraClass(cam_number=3)
+    cam4 = vis.CameraClass(cam_number=4)
+    cam5 = vis.CameraClass(cam_number=5)
 
-#     new_dir_name = f"{Task}_{timestamp}"
-#     save_dir = os.path.join(base_dir, new_dir_name)
+    # initialize camera 6 pipeline
+    W = 1280
+    H = 800
+    pipeline = rs.pipeline()
+    config = rs.config()
+    config.enable_device('152522250441')
+    config.enable_stream(rs.stream.color, W, H, rs.format.bgr8, 30)
+    pipeline.start(config)
 
-#     os.makedirs(save_dir, exist_ok=True)
+    done_queue = queue.Queue()
 
-#     fa = FrankaArm()
-#     fa.reset_joints()
-#     fa.open_gripper()
-#     home_pose = fa.get_pose()
-#     # cam1 = vis.CameraClass(cam_number=1)
-#     cam2 = vis.CameraClass(cam_number=2)
-#     cam3 = vis.CameraClass(cam_number=3)
-#     cam4 = vis.CameraClass(cam_number=4)
-#     cam5 = vis.CameraClass(cam_number=5)
+    main_thread = threading.Thread(target=exec_experiment, args=(fa, cam2, cam3, cam4, cam5, "/home/arvind/LLM_Tool/PLATO/Baselines/RobotTool/Trials", Task, ActionList, home_pose, done_queue))
+    video_thread = threading.Thread(target=video_loop, args=(pipeline, save_dir, done_queue))
 
-#     # initialize camera 6 pipeline
-#     W = 1280
-#     H = 800
-#     pipeline = rs.pipeline()
-#     config = rs.config()
-#     config.enable_device('152522250441')
-#     config.enable_stream(rs.stream.color, W, H, rs.format.bgr8, 30)
-#     pipeline.start(config)
-
-#     done_queue = queue.Queue()
-
-#     main_thread = threading.Thread(target=exec_experiment, args=(fa, cam2, cam3, cam4, cam5, save_dir, Task, ActionList, home_pose, done_queue))
-#     video_thread = threading.Thread(target=video_loop, args=(pipeline, save_dir, done_queue))
-
-#     main_thread.start()
-#     video_thread.start()
+    main_thread.start()
+    video_thread.start()
