@@ -1,0 +1,6 @@
+*.ply 
+*.png
+*.pth
+SavedPC/
+try_images/
+

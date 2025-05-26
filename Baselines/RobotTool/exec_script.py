@@ -255,7 +255,7 @@ def exec_experiment(fa=None, cam2=None, cam3=None, cam4=None, cam5=None, save_di
     # Query Scene comp, get list of objects
 
     # ObjList, HandleFlags = SceneComprehension(save_path, Task)
-    ObjList = ['flattening tool', 'cardboard box', 'pile of candy', 'metal scoop', 'pink ball of dough']
+    ObjList = ['toy strawberry', 'toy broccoli', 'toy lunchbox', 'toy grapes', 'toy hamburger']
 
     
     PosList = [f"original position of {obj}" for obj in ObjList]
