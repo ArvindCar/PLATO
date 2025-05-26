@@ -47,8 +47,8 @@ Answer:
 """
     return prompt
 
-def inferencing_gpt(prompt, api_key='sk-proj-cwCAqX0qJCX7QJz9CJ5OT3BlbkFJDQVToVBB2u2IIOq4ttTS'):
-    client = OpenAI(api_key=api_key)
+def inferencing_gpt(prompt):
+    client = OpenAI()
     response = client.chat.completions.create(
       model="gpt-3.5-turbo",
       messages=[
@@ -61,6 +61,6 @@ def inferencing_gpt(prompt, api_key='sk-proj-cwCAqX0qJCX7QJz9CJ5OT3BlbkFJDQVToVB
     return preprocessing_string_tool(chatbot_response)
 
 if __name__ == '__main__':
-    prompt = tool_checker_prompt('Fork', 'Eating', '/home/sai/robotool/test/os_tog/data/OSTOG_physical_experiments')
+    prompt = tool_checker_prompt('Fork', 'Eating', '/path/to/os_tog/data/OSTOG_physical_experiments')
     similar_tool, similar_task = inferencing_gpt(prompt=prompt)
     print(similar_tool, similar_task)

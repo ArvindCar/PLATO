@@ -1,0 +1,6 @@
+[submodule "SAM/GroundingDINO"]
+	path = SAM/GroundingDINO
+	url = https://github.com/IDEA-Research/GroundingDINO
+[submodule "grasping/grasping/os_tog"]
+	path = grasping/grasping/os_tog
+	url = https://github.com/valerija-h/os_tog.git

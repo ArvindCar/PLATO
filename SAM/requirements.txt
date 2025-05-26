@@ -1,0 +1,12 @@
+torch
+torchvision
+transformers
+addict
+yapf
+timm
+numpy
+opencv-python
+supervision==0.21.0
+pycocotools
+rf-groundingdino==0.2.0
+git+https://github.com/facebookresearch/segment-anything.git
